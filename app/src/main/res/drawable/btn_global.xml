@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- State ketika ditekan -->
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#1976D2"/> <!-- Biru lebih gelap -->
+            <corners android:radius="12dp"/> <!-- Sudut membulat -->
+        </shape>
+    </item>
+
+    <!-- State default (tidak ditekan) -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#2196F3"/> <!-- Biru normal -->
+            <corners android:radius="12dp"/>
+        </shape>
+    </item>
+
+</selector>

@@ -1,8 +1,19 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.CleanLake" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    <style name="Base.Theme.CleanLake" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <!-- 🧩 FONT GLOBAL -->
+        <item name="android:fontFamily">@font/poppins</item>
+        <item name="fontFamily">@font/poppins</item>
+
+        <!-- Atur font default TextView, Button, dsb -->
+        <item name="textAppearanceBodyLarge">@style/GlobalTextStyle</item>
+        <item name="textAppearanceBodyMedium">@style/GlobalTextStyle</item>
+        <item name="textAppearanceBodySmall">@style/GlobalTextStyle</item>
+    </style>
+
+    <!-- Style tambahan untuk text -->
+    <style name="GlobalTextStyle" parent="@android:style/TextAppearance">
+        <item name="fontFamily">@font/poppins</item>
     </style>
 
     <style name="Theme.CleanLake" parent="Base.Theme.CleanLake" />

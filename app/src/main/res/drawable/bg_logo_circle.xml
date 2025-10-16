@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+
+    <!-- Gradient radial dari putih ke abu transparan -->
+    <gradient
+        android:type="radial"
+        android:gradientRadius="60dp"
+        android:startColor="#FFFFFFFF"
+        android:endColor="#33FFFFFF" />
+
+
+    <!-- Border tipis opsional -->
+    <stroke
+        android:width="2dp"
+        android:color="#33FFFFFF" />
+
+    <!-- Padding supaya logo tidak terlalu mepet -->
+    <padding
+        android:bottom="8dp"
+        android:left="8dp"
+        android:right="8dp"
+        android:top="8dp" />
+</shape>

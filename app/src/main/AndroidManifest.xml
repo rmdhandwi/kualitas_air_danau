@@ -2,24 +2,48 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- ⚠️ Tambahkan permission agar notifikasi & service berjalan -->
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE"
+        tools:ignore="ForegroundServicesPolicy" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/logo_only"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/logo_only"
         android:supportsRtl="true"
         android:theme="@style/Theme.CleanLake">
+
+        <!-- 🧩 Service untuk notifikasi & alarm -->
+        <service
+            android:name=".Service.AlertService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback|location|dataSync|connectedDevice"
+            android:stopWithTask="false"
+            tools:ignore="ForegroundServicePermission" />
+
+        <!-- 🔹 Activity Login jadi launcher -->
+        <activity
+            android:name=".Auth.ForgetPasswordActivity"
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Auth.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>

@@ -1,0 +1,55 @@
+{
+  "Users": {
+    "Ax6pXa1n30WbPoM8ljW4UmIbBpf1": {
+      "uid": "Ax6pXa1n30WbPoM8ljW4UmIbBpf1",
+      "nama": "Administrator",
+      "username": "admin",
+      "email": "admin@gmail.com",
+      "pasword": "c8837b23ff8aaa8a2dde915473ce0991", 
+      "role": "admin",
+      "created_at": "2025-10-01T08:00:00Z"
+    }
+  },
+
+  "AmbangBatas": {
+    "Batas Kota": {
+      "pH": { "min": 6.5, "max": 8.5 },
+      "Suhu": { "min": 25.0, "max": 32.0 },
+      "TDS": { "min": 0.0, "max": 500.0 },
+      "Kekeruhan": { "min": 0.0, "max": 5.0 }
+    },
+    "Danau Sentani": {
+      "pH": { "min": 6.0, "max": 9.0 },
+      "Suhu": { "min": 24.0, "max": 31.0 },
+      "TDS": { "min": 0.0, "max": 450.0 },
+      "Kekeruhan": { "min": 0.0, "max": 10.0 }
+    },
+    "Kampung Harapan": {
+      "pH": { "min": 6.2, "max": 8.8 },
+      "Suhu": { "min": 26.0, "max": 33.0 },
+      "TDS": { "min": 50.0, "max": 550.0 },
+      "Kekeruhan": { "min": 0.0, "max": 8.0 }
+    }
+  },
+
+  "Lokasi": {
+    "Batas Kota": {
+      "pH": 8.2,
+      "Suhu": 29.4,
+      "TDS": 220.0,
+      "Kekeruhan": 3.2
+    },
+    "Danau Sentani": {
+      "pH": 9.2,
+      "Suhu": 32.5,
+      "TDS": 470.0,
+      "Kekeruhan": 11.0
+    },
+    "Kampung Harapan": {
+      "pH": 7.3,
+      "Suhu": 27.1,
+      "TDS": 600.0,
+      "Kekeruhan": 9.1
+    }
+  }
+}

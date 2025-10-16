@@ -2,4 +2,8 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="menu_on">#2196F3</color>
+    <color name="menu_off">#BFFFFDFD</color>
+    <color name="status_bg">#FFE0E0E0</color>
+    <color name="status_border">#FFB0B0B0</color>
 </resources>

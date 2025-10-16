@@ -1,19 +1,237 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/bg_gradient"
+    android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <!-- Logo -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="10dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+
+        <ImageView
+            android:layout_width="140dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center|top"
+            android:layout_margin="5dp"
+            android:elevation="12dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/logo"
+            tools:ignore="ContentDescription" />
+
+
+    </LinearLayout>
+
+    <!-- halaman dan profile -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvMenu"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_menu"
+            android:letterSpacing="0.1"
+            android:padding="5dp"
+            android:text="Halaman"
+            android:textAlignment="center"
+            android:textColor="#004273"
+            android:textAllCaps="true"
+            android:textSize="16dp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="end|center"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp">
+
+            <TextView
+                android:id="@+id/tvUsername"
+                android:layout_width="140dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:text="nama user"
+                android:textColor="#fff"
+                android:textAlignment="textEnd" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                app:cardCornerRadius="100dp"
+                app:cardElevation="10dp">
+
+                <ImageView
+                    android:id="@+id/ivProfile"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/ic_delete" />
+            </androidx.cardview.widget.CardView>
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Fragment Content -->
+    <FrameLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Custom Bottom Menu -->
+    <LinearLayout
+        android:id="@+id/customNav"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:background="@drawable/bg_nav_shadow"
+        android:orientation="horizontal"
+        android:paddingHorizontal="10dp"
+        android:gravity="center"
+        android:weightSum="6">
+
+        <!-- Item Home -->
+        <LinearLayout
+            android:id="@+id/navHome"
+            style="@style/BottomNavItemStyle"
+            tools:ignore="UseCompoundDrawables">
+
+            <ImageView
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:src="@drawable/ic_home"
+                app:tint="@color/menu_off" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Beranda"
+                android:textColor="@color/menu_off"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Item Riwayat -->
+        <LinearLayout
+            android:id="@+id/navHistory"
+            style="@style/BottomNavItemStyle"
+            tools:ignore="UseCompoundDrawables">
+
+            <ImageView
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:src="@drawable/ic_history"
+                app:tint="@color/menu_off" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Riwayat"
+                android:textColor="@color/menu_off"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Item Setting -->
+        <LinearLayout
+            android:id="@+id/navSetting"
+            style="@style/BottomNavItemStyle"
+            tools:ignore="UseCompoundDrawables">
+
+            <ImageView
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:src="@drawable/ic_settings"
+                app:tint="@color/menu_off" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Setting"
+                android:textColor="@color/menu_off"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Item Users -->
+        <LinearLayout
+            android:id="@+id/navUsers"
+            style="@style/BottomNavItemStyle"
+            tools:ignore="UseCompoundDrawables">
+
+            <ImageView
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:src="@drawable/ic_users"
+                app:tint="@color/menu_off" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Users"
+                android:textColor="@color/menu_off"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Item Profile -->
+        <LinearLayout
+            android:id="@+id/navProfile"
+            style="@style/BottomNavItemStyle"
+            tools:ignore="UseCompoundDrawables">
+
+            <ImageView
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:src="@drawable/ic_profile"
+                app:tint="@color/menu_off" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Profile"
+                android:textColor="@color/menu_off"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Item Logout -->
+        <LinearLayout
+            android:id="@+id/logout"
+            style="@style/BottomNavItemStyle"
+            tools:ignore="UseCompoundDrawables">
+
+            <ImageView
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:src="@drawable/ic_logout"
+                app:tint="#F20606" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Logout"
+                android:textStyle="bold"
+                android:textColor="#F20606"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

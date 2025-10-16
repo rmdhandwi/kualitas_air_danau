@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <!-- ==== Lokasi ==== -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <!-- Item 1 -->
+            <FrameLayout
+                android:id="@+id/mnBatasKota"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="4dp"
+                android:layout_weight="1">
+
+                <!-- Card di bawah -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cardViewBatasKota"
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:layout_marginTop="15dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="4dp"
+                    app:cardUseCompatPadding="true"
+                    tools:ignore="DuplicateIds">
+
+                    <TextView
+                        android:id="@+id/tvBatasKota"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="Batas Kota"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"
+                        android:paddingTop="10dp"
+                        android:textStyle="bold" />
+                </androidx.cardview.widget.CardView>
+
+                <!-- Icon di atas Card -->
+                <ImageView
+                    android:id="@+id/imgLokasi1"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="top|center_horizontal"
+                    android:contentDescription="@string/app_name"
+                    android:elevation="8dp"
+                    android:src="@drawable/ic_lake" />
+            </FrameLayout>
+
+            <!-- Item 2 -->
+            <FrameLayout
+                android:id="@+id/mnDanauSentani"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="4dp"
+                android:layout_weight="1">
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cardViewDanauSentani"
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:layout_marginTop="15dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="4dp"
+                    app:cardUseCompatPadding="true"
+                    tools:ignore="DuplicateIds">
+
+                    <TextView
+                        android:id="@+id/tvDanauSentani"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:paddingTop="10dp"
+                        android:text="Danau Sentani"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                </androidx.cardview.widget.CardView>
+
+                <ImageView
+                    android:id="@+id/imgLokasi2"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="top|center_horizontal"
+                    android:contentDescription="@string/app_name"
+                    android:elevation="8dp"
+                    android:src="@drawable/ic_lake" />
+            </FrameLayout>
+
+            <!-- Item 3 -->
+            <FrameLayout
+                android:id="@+id/mnKampungHarapan"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="4dp"
+                android:layout_weight="1">
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cardViewKampungHarapan"
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:layout_marginTop="15dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="4dp"
+                    app:cardUseCompatPadding="true"
+                    tools:ignore="DuplicateIds">
+
+                    <TextView
+                        android:id="@+id/tvKampungHarapan"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="Kampung Harapan"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"
+                        android:paddingTop="10dp"
+                        android:textStyle="bold" />
+                </androidx.cardview.widget.CardView>
+
+                <ImageView
+                    android:id="@+id/imgLokasi3"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="top|center_horizontal"
+                    android:contentDescription="@string/app_name"
+                    android:elevation="8dp"
+                    android:src="@drawable/ic_lake" />
+            </FrameLayout>
+
+        </LinearLayout>
+
+
+        <!-- ==== Judul Lokasi ==== -->
+        <TextView
+            android:id="@+id/tvLokasi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="BATAS KOTA"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- ==== Data Box ==== -->
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp">
+
+            <GridLayout
+                android:id="@+id/dataContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:alignmentMode="alignMargins"
+                android:columnCount="2"
+                android:columnOrderPreserved="false"
+                android:rowCount="2"
+                android:useDefaultMargins="true">
+
+                <include
+                    android:id="@+id/itemPh"
+                    layout="@layout/item_status"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_rowWeight="1"
+                    android:layout_columnWeight="1"
+                    android:tag="pH" />
+
+                <include
+                    android:id="@+id/itemSuhu"
+                    layout="@layout/item_status"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_rowWeight="1"
+                    android:layout_columnWeight="1"
+                    android:tag="Suhu" />
+
+                <include
+                    android:id="@+id/itemTds"
+                    layout="@layout/item_status"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_rowWeight="1"
+                    android:layout_columnWeight="1"
+                    android:tag="TDS" />
+
+                <include
+                    android:id="@+id/itemKekeruhan"
+                    layout="@layout/item_status"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_rowWeight="1"
+                    android:layout_columnWeight="1"
+                    android:tag="Kekeruhan" />
+            </GridLayout>
+        </ScrollView>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

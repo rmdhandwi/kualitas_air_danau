@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "377081814550",
+    "project_id": "cleanlake-7cb91",
+    "storage_bucket": "cleanlake-7cb91.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:377081814550:android:a9adedfd5acac596441f37",
+        "android_client_info": {
+          "package_name": "com.example.cleanlake"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgqd7izjsF4dj32FDUjGe3KYnl4JQxONA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

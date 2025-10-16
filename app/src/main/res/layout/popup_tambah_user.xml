@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="10dp">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:padding="10dp"
+            android:orientation="vertical">
+
+            <!-- Foto Profil -->
+            <ImageButton
+                android:id="@+id/btnClose"
+                android:layout_gravity="end"
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                app:srcCompat="@android:drawable/ic_menu_close_clear_cancel"
+                app:tint="#FD0000"
+                android:backgroundTint="#00000000"
+                tools:ignore="ContentDescription,SpeakableTextPresentCheck" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="50dp">
+
+                <ImageView
+                    android:id="@+id/imgProfilePreview"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:contentDescription="@string/app_name"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_user_placeholder"
+                    tools:ignore="ContentDescription" />
+            </androidx.cardview.widget.CardView>
+
+
+            <Button
+                android:id="@+id/btnUploadFoto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/btn_global"
+                android:paddingHorizontal="20dp"
+                android:text="Upload Foto"
+                android:textColor="#FFF"
+                tools:ignore="HardcodedText" />
+
+            <!-- Form Input -->
+            <EditText
+                android:id="@+id/etNamaLengkap"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_input"
+                android:drawableStart="@drawable/ic_user_resized"
+                android:drawablePadding="10dp"
+                android:hint="Nama Lengkap"
+                android:textColorHint="#A2A2A2"
+                android:inputType="text"
+                android:padding="12dp"
+                tools:ignore="Autofill,HardcodedText" />
+
+            <EditText
+                android:id="@+id/etUsername"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_input"
+                android:drawableStart="@drawable/ic_user_resized"
+                android:drawablePadding="10dp"
+                android:hint="Username"
+                android:textColorHint="#A2A2A2"
+                android:inputType="text"
+                android:padding="12dp"
+                tools:ignore="Autofill,HardcodedText" />
+
+            <EditText
+                android:id="@+id/etEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_input"
+                android:drawableStart="@drawable/ic_mail_resized"
+                android:drawablePadding="10dp"
+                android:hint="Email"
+                android:textColorHint="#A2A2A2"
+                android:inputType="textEmailAddress"
+                android:padding="12dp"
+                tools:ignore="Autofill,HardcodedText" />
+
+<!--            <RadioGroup-->
+<!--                android:id="@+id/rgRole"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="8dp"-->
+<!--                android:layout_marginBottom="16dp"-->
+<!--                android:orientation="horizontal">-->
+
+<!--                <RadioButton-->
+<!--                    android:id="@+id/rbAdmin"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="match_parent"-->
+<!--                    android:layout_marginEnd="16dp"-->
+<!--                    android:text="Admin"-->
+<!--                    android:textColor="#797979"-->
+<!--                    android:textSize="16sp"-->
+<!--                    android:textStyle="bold"-->
+<!--                    tools:ignore="HardcodedText,TouchTargetSizeCheck" />-->
+
+<!--                <RadioButton-->
+<!--                    android:id="@+id/rbUser"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="match_parent"-->
+<!--                    android:layout_marginEnd="16dp"-->
+<!--                    android:text="User"-->
+<!--                    android:textColor="#797979"-->
+<!--                    android:textSize="16sp"-->
+<!--                    android:textStyle="bold"-->
+<!--                    tools:ignore="HardcodedText,TouchTargetSizeCheck" />-->
+<!--            </RadioGroup>-->
+
+            <EditText
+                android:id="@+id/etNoTelp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_input"
+                android:hint="No. Telepon"
+                android:inputType="phone"
+                android:padding="12dp"
+                android:drawableStart="@drawable/ic_telp_resized"
+                android:drawableTint="#B7B7B7"
+                android:drawablePadding="10dp"
+                android:textColorHint="#A2A2A2"
+                tools:ignore="Autofill,HardcodedText" />
+
+            <EditText
+                android:id="@+id/etPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_input"
+                android:drawableStart="@drawable/ic_lock_resized"
+                android:drawableEnd="@drawable/ic_visibility_resized"
+                android:drawablePadding="10dp"
+                android:hint="Password"
+                android:inputType="textPassword"
+                android:padding="12dp"
+                android:textColorHint="#A2A2A2"
+                tools:ignore="Autofill,HardcodedText" />
+
+            <EditText
+                android:id="@+id/etConfirmPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_input"
+                android:drawableEnd="@drawable/ic_visibility_resized"
+                android:drawablePadding="10dp"
+                android:drawableStart="@drawable/ic_lock_resized"
+                android:hint="Konfirmasi Password"
+                android:inputType="textPassword"
+                android:padding="12dp"
+                android:textColorHint="#A2A2A2"
+                tools:ignore="Autofill,HardcodedText" />
+
+
+            <Button
+                android:id="@+id/btnSimpanUser"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/btn_global"
+                android:text="Simpan"
+                android:textColor="#FFF"
+                tools:ignore="HardcodedText" />
+        </LinearLayout>
+
+</ScrollView>
