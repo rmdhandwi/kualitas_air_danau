@@ -34,34 +34,41 @@ class AlertService : Service() {
         }
 
         val lokasi = intent?.getStringExtra("lokasi") ?: "Tidak diketahui"
-        val parameter = intent?.getStringExtra("parameter") ?: "Sensor"
-        val value = intent?.getStringExtra("value") ?: "-"
+        val triggeredSensors = intent?.getStringArrayListExtra("triggeredSensors") ?: arrayListOf()
 
-        showNotification(lokasi, parameter, value)
-        showAlarmControlNotification()
-        playAlarm()
+        if (triggeredSensors.isNotEmpty()) {
+            showNotification(lokasi, triggeredSensors)
+
+            // 🔊 Alarm hanya jika ≥ 2 sensor bermasalah
+            if (triggeredSensors.size >= 2) {
+                showAlarmControlNotification()
+                playAlarm()
+            }
+        }
 
         return START_NOT_STICKY
     }
 
-    /** Notifikasi utama (tetap sama seperti sebelumnya) **/
-    private fun showNotification(lokasi: String, parameter: String, value: String) {
+    /** Notifikasi semua sensor bermasalah **/
+    private fun showNotification(lokasi: String, triggeredSensors: List<String>) {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 channelId,
-                "Peringatan Bahaya",
+                "Peringatan Kualitas Air",
                 NotificationManager.IMPORTANCE_HIGH
             )
-            channel.description = "Notifikasi ketika parameter melebihi ambang batas"
+            channel.description = "Notifikasi sensor air yang melebihi atau kurang dari ambang batas"
             notificationManager.createNotificationChannel(channel)
         }
 
+        val contentText = triggeredSensors.joinToString("\n")
+
         val notification: Notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.ic_warning)
-            .setContentTitle("🚨 Peringatan Bahaya di $lokasi")
-            .setContentText("$parameter di luar batas normal (nilai: $value)")
+            .setContentTitle("🚨 Peringatan Air di $lokasi")
+            .setStyle(NotificationCompat.BigTextStyle().bigText(contentText))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .build()
@@ -69,7 +76,7 @@ class AlertService : Service() {
         notificationManager.notify(System.currentTimeMillis().toInt(), notification)
     }
 
-    /** 🔕 Notifikasi tambahan khusus kontrol alarm **/
+    /** Notifikasi kontrol alarm **/
     private fun showAlarmControlNotification() {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -83,7 +90,6 @@ class AlertService : Service() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        // Intent tombol matikan alarm
         val stopIntent = Intent(this, AlertService::class.java).apply {
             action = ACTION_STOP_ALARM
         }
@@ -104,7 +110,6 @@ class AlertService : Service() {
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
 
-        // Tampilkan notifikasi kontrol (hanya 1, ID tetap)
         notificationManager.notify(controlNotificationId, controlNotification)
     }
 

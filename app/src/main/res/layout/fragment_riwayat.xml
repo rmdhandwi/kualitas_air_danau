@@ -26,7 +26,7 @@
             android:layout_weight="1">
 
             <androidx.cardview.widget.CardView
-                android:id="@+id/cardViewBatasKota"
+                android:id="@+id/cardViewYoka"
                 android:layout_width="match_parent"
                 android:layout_height="80dp"
                 android:layout_marginTop="15dp"
@@ -37,11 +37,11 @@
                 app:cardUseCompatPadding="true">
 
                 <TextView
-                    android:id="@+id/tvBatasKota"
+                    android:id="@+id/tvYoka"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:text="Batas Kota"
+                    android:text="Yoka"
                     android:textColor="@color/black"
                     android:textSize="14sp"
                     android:textStyle="bold" />
@@ -66,7 +66,7 @@
             android:layout_weight="1">
 
             <androidx.cardview.widget.CardView
-                android:id="@+id/cardViewDanauSentani"
+                android:id="@+id/cardViewBatasKota"
                 android:layout_width="match_parent"
                 android:layout_height="80dp"
                 android:layout_marginTop="15dp"
@@ -77,11 +77,11 @@
                 app:cardUseCompatPadding="true">
 
                 <TextView
-                    android:id="@+id/tvDanauSentani"
+                    android:id="@+id/tvBatasKota"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:text="Danau Sentani"
+                    android:text="Batas Kota"
                     android:textColor="@color/black"
                     android:textSize="14sp"
                     android:textStyle="bold" />
@@ -106,7 +106,7 @@
             android:layout_weight="1">
 
             <androidx.cardview.widget.CardView
-                android:id="@+id/cardViewKampungHarapan"
+                android:id="@+id/cardViewYobeh"
                 android:layout_width="match_parent"
                 android:layout_height="80dp"
                 android:layout_marginTop="15dp"
@@ -117,11 +117,11 @@
                 app:cardUseCompatPadding="true">
 
                 <TextView
-                    android:id="@+id/tvKampungHarapan"
+                    android:id="@+id/tvYobeh"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:text="Kampung Harapan"
+                    android:text="Yobeh"
                     android:textColor="@color/black"
                     android:textSize="14sp"
                     android:textStyle="bold" />
@@ -155,6 +155,7 @@
         android:id="@+id/rvRiwayat"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:visibility="visible"
         android:layout_weight="1"
         android:paddingBottom="8dp"
         android:clipToPadding="false"
@@ -164,10 +165,12 @@
     <TextView
         android:id="@+id/tvKosong"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:text="Belum ada riwayat untuk lokasi ini"
         android:textAlignment="center"
         android:textSize="14sp"
+        android:gravity="center"
         android:backgroundTint="#202196F3"
         android:textColor="#CFCFCF"
         android:visibility="gone"

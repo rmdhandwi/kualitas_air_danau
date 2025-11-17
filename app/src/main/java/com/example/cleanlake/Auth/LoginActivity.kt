@@ -30,6 +30,13 @@ class LoginActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         dbRef = FirebaseDatabase.getInstance().getReference("Users")
 
+        // 🔹 Jika sudah login, langsung masuk ke MainActivity
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            goToMain()
+            return
+        }
+
         setupPasswordVisibilityToggle()
         setupActions()
     }
@@ -77,12 +84,10 @@ class LoginActivity : AppCompatActivity() {
             binding.btnLogin.isEnabled = false
             binding.btnLogin.text = "Memproses..."
 
-            // 🔹 Cek username di Realtime Database
             dbRef.orderByChild("username").equalTo(username)
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         if (snapshot.exists()) {
-                            // Ambil email dari data user
                             for (userSnapshot in snapshot.children) {
                                 val email = userSnapshot.child("email").getValue(String::class.java)
                                 if (!email.isNullOrEmpty()) {
@@ -127,6 +132,7 @@ class LoginActivity : AppCompatActivity() {
 
     private fun goToMain() {
         val intent = Intent(this, MainActivity::class.java)
+        // agar tidak bisa kembali ke login pakai tombol back
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()

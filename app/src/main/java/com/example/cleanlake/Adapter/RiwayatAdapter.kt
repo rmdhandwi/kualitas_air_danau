@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.cardview.widget.CardView
@@ -23,6 +24,7 @@ class RiwayatAdapter(
         val cardView: CardView = view as CardView
         val tvTanggal: TextView = view.findViewById(R.id.tvTanggal)
         val tvStatus: TextView = view.findViewById(R.id.tvStatus)
+        val icStatus: ImageView = view.findViewById(R.id.icStatus)
         val tvDeskripsi: TextView = view.findViewById(R.id.tvDeskripsi)
         val phLayout: View = view.findViewById(R.id.itemPh)
         val suhuLayout: View = view.findViewById(R.id.itemSuhu)
@@ -37,27 +39,56 @@ class RiwayatAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val data = listRiwayat[position]
-        holder.tvTanggal.text = data.timestamp ?: "-"
-        holder.tvStatus.text = data.status ?: "-"
-        holder.tvDeskripsi.text = data.deskripsi ?: "-"
 
-        // Ubah warna status
-        when (data.status) {
-            "AMAN" -> holder.tvStatus.setBackgroundResource(R.drawable.bg_status_safe)
-            "BAHAYA" -> holder.tvStatus.setBackgroundResource(R.drawable.bg_status_danger)
-            else -> holder.tvStatus.setBackgroundResource(R.drawable.bg_status_warning)
+        // Tampilkan tanggal & deskripsi dengan fallback
+        holder.tvTanggal.text = data.timestamp ?: "-"
+        holder.tvDeskripsi.text = data.deskripsi ?: "Tidak ada deskripsi"
+        val status = data.status?.uppercase() ?: "-"
+
+        // 💡 Tampilkan status + warna + ikon sesuai kondisi
+        when (status) {
+            "AMAN" -> {
+                holder.tvStatus.text = "AMAN"
+                holder.tvStatus.setTextColor(ContextCompat.getColor(context, R.color.safe))
+                holder.icStatus.setImageResource(R.drawable.ic_checked)
+                holder.icStatus.setColorFilter(ContextCompat.getColor(context, R.color.safe))
+            }
+            "PERINGATAN" -> {
+                holder.tvStatus.text = "PERINGATAN"
+                holder.tvStatus.setTextColor(ContextCompat.getColor(context, R.color.warning))
+                holder.icStatus.setImageResource(R.drawable.ic_warning)
+                holder.icStatus.setColorFilter(ContextCompat.getColor(context, R.color.warning))
+            }
+            "BAHAYA", "KRITIKAL" -> {
+                holder.tvStatus.text = "BAHAYA"
+                holder.tvStatus.setTextColor(ContextCompat.getColor(context, R.color.danger))
+                holder.icStatus.setImageResource(R.drawable.ic_danger)
+                holder.icStatus.setColorFilter(ContextCompat.getColor(context, R.color.danger))
+            }
+            else -> {
+                holder.tvStatus.text = "-"
+                holder.tvStatus.setTextColor(ContextCompat.getColor(context, R.color.gray_700))
+                holder.icStatus.setImageResource(R.drawable.ic_info)
+                holder.icStatus.setColorFilter(ContextCompat.getColor(context, R.color.gray_700))
+            }
         }
 
-        // Isi nilai-nilai grid
+        // 🧩 Isi nilai grid sensor dengan warna adaptif
         setGrid(holder.phLayout, "pH", data.pH, data.pH_min, data.pH_max)
         setGrid(holder.suhuLayout, "Suhu (°C)", data.Suhu, data.Suhu_min, data.Suhu_max)
         setGrid(holder.tdsLayout, "TDS (ppm)", data.TDS, data.TDS_min, data.TDS_max)
         setGrid(holder.kekeruhanLayout, "Kekeruhan (NTU)", data.Kekeruhan, data.Kekeruhan_min, data.Kekeruhan_max)
 
-        // Animasi lembut tiap item muncul
-        val anim = AnimationUtils.loadAnimation(context, R.anim.fade_in)
-        holder.cardView.startAnimation(anim)
+        // ✨ Animasi halus (tanpa berulang saat scroll)
+        if (!holder.itemView.isShown) {
+            holder.itemView.alpha = 0f
+            holder.itemView.animate()
+                .alpha(1f)
+                .setDuration(400)
+                .start()
+        }
     }
+
 
     @SuppressLint("SetTextI18n")
     private fun setGrid(view: View, label: String, value: Double?, min: Double?, max: Double?) {

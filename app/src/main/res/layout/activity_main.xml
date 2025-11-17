@@ -34,7 +34,6 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:layout_marginTop="16dp"
         android:gravity="center"
         android:orientation="horizontal">
 
@@ -48,8 +47,8 @@
             android:padding="5dp"
             android:text="Halaman"
             android:textAlignment="center"
-            android:textColor="#004273"
             android:textAllCaps="true"
+            android:textColor="#004273"
             android:textSize="16dp"
             android:textStyle="bold" />
 
@@ -67,22 +66,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="10dp"
                 android:text="nama user"
-                android:textColor="#fff"
-                android:textAlignment="textEnd" />
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                app:cardCornerRadius="100dp"
-                app:cardElevation="10dp">
-
-                <ImageView
-                    android:id="@+id/ivProfile"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/ic_delete" />
-            </androidx.cardview.widget.CardView>
+                android:textAlignment="textEnd"
+                android:textColor="#fff" />
         </LinearLayout>
 
     </LinearLayout>
@@ -92,17 +77,31 @@
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:visibility="visible"
         android:layout_weight="1" />
+
+    <ProgressBar
+        android:id="@+id/progressLoading"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/menu_on"
+        android:visibility="visible" />
+
 
     <!-- Custom Bottom Menu -->
     <LinearLayout
         android:id="@+id/customNav"
         android:layout_width="match_parent"
         android:layout_height="70dp"
+        android:layout_marginBottom="50dp"
         android:background="@drawable/bg_nav_shadow"
+        android:gravity="center"
+        android:visibility="visible"
         android:orientation="horizontal"
         android:paddingHorizontal="10dp"
-        android:gravity="center"
         android:weightSum="6">
 
         <!-- Item Home -->
@@ -227,9 +226,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="Logout"
-                android:textStyle="bold"
                 android:textColor="#F20606"
-                android:textSize="12sp" />
+                android:textSize="12sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
     </LinearLayout>

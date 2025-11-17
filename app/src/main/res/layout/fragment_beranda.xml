@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
+    android:orientation="vertical"
     android:padding="16dp">
 
     <LinearLayout
@@ -31,7 +31,7 @@
 
                 <!-- Card di bawah -->
                 <androidx.cardview.widget.CardView
-                    android:id="@+id/cardViewBatasKota"
+                    android:id="@+id/cardViewYoka"
                     android:layout_width="match_parent"
                     android:layout_height="80dp"
                     android:layout_marginTop="15dp"
@@ -43,14 +43,14 @@
                     tools:ignore="DuplicateIds">
 
                     <TextView
-                        android:id="@+id/tvBatasKota"
+                        android:id="@+id/tvYoka"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center"
-                        android:text="Batas Kota"
+                        android:paddingTop="10dp"
+                        android:text="Yoka"
                         android:textColor="@color/black"
                         android:textSize="14sp"
-                        android:paddingTop="10dp"
                         android:textStyle="bold" />
                 </androidx.cardview.widget.CardView>
 
@@ -74,7 +74,7 @@
                 android:layout_weight="1">
 
                 <androidx.cardview.widget.CardView
-                    android:id="@+id/cardViewDanauSentani"
+                    android:id="@+id/cardViewBatasKota"
                     android:layout_width="match_parent"
                     android:layout_height="80dp"
                     android:layout_marginTop="15dp"
@@ -86,12 +86,12 @@
                     tools:ignore="DuplicateIds">
 
                     <TextView
-                        android:id="@+id/tvDanauSentani"
+                        android:id="@+id/tvBatasKota"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:paddingTop="10dp"
-                        android:text="Danau Sentani"
+                        android:text="Batas Kota"
                         android:textColor="@color/black"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -116,7 +116,7 @@
                 android:layout_weight="1">
 
                 <androidx.cardview.widget.CardView
-                    android:id="@+id/cardViewKampungHarapan"
+                    android:id="@+id/cardViewYobeh"
                     android:layout_width="match_parent"
                     android:layout_height="80dp"
                     android:layout_marginTop="15dp"
@@ -128,14 +128,14 @@
                     tools:ignore="DuplicateIds">
 
                     <TextView
-                        android:id="@+id/tvKampungHarapan"
+                        android:id="@+id/tvYobeh"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center"
-                        android:text="Kampung Harapan"
+                        android:paddingTop="10dp"
+                        android:text="Yobeh"
                         android:textColor="@color/black"
                         android:textSize="14sp"
-                        android:paddingTop="10dp"
                         android:textStyle="bold" />
                 </androidx.cardview.widget.CardView>
 
@@ -165,8 +165,9 @@
         <!-- ==== Data Box ==== -->
         <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp">
+            android:layout_height="0dp"
+            android:layout_marginTop="8dp"
+            android:layout_weight="1">
 
             <GridLayout
                 android:id="@+id/dataContainer"
@@ -215,5 +216,49 @@
                     android:tag="Kekeruhan" />
             </GridLayout>
         </ScrollView>
+
+        <ProgressBar
+            android:id="@+id/progressLoading"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            android:indeterminate="true"
+            android:indeterminateTint="@color/menu_on"
+            android:layout_marginTop="12dp" />
+
+
+        <LinearLayout
+            android:id="@+id/layoutStatusEvaluasi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="14dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/bg_item_riwayat"
+            android:elevation="2dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="12dp">
+
+            <ImageView
+                android:id="@+id/icStatusEvaluasi"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/ic_info"
+                android:tint="@android:color/white" />
+
+            <TextView
+                android:id="@+id/tvStatusEvaluasi"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Status Evaluasi: -"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+
     </LinearLayout>
-</androidx.core.widget.NestedScrollView>
+</LinearLayout>

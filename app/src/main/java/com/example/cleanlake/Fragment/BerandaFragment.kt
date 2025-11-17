@@ -26,7 +26,7 @@ class BerandaFragment : Fragment() {
 
     private lateinit var lokasiRef: DatabaseReference
     private lateinit var ambangRef: DatabaseReference
-    private lateinit var riwayatRef: DatabaseReference // 🔹 Tambahan
+    private lateinit var riwayatRef: DatabaseReference
 
     private var selectedCard: CardView? = null
     private var selectedTextView: TextView? = null
@@ -34,7 +34,7 @@ class BerandaFragment : Fragment() {
     private var ambangListener: ValueEventListener? = null
 
     private var ambangData: MutableMap<String, Pair<Double?, Double?>> = mutableMapOf()
-    private var lastSaveTime = 0L
+    private val lastSaveTimes = mutableMapOf<String, Long>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -43,7 +43,7 @@ class BerandaFragment : Fragment() {
         _binding = FragmentBerandaBinding.inflate(inflater, container, false)
         lokasiRef = FirebaseDatabase.getInstance().getReference("Lokasi")
         ambangRef = FirebaseDatabase.getInstance().getReference("AmbangBatas")
-        riwayatRef = FirebaseDatabase.getInstance().getReference("Riwayat") // 🔹 Tambahan
+        riwayatRef = FirebaseDatabase.getInstance().getReference("Riwayat")
         return binding.root
     }
 
@@ -51,20 +51,18 @@ class BerandaFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Setup lokasi
         binding.cardViewBatasKota.setOnClickListener {
-            selectLocation(binding.cardViewBatasKota, binding.tvBatasKota, "Batas Kota")
+            selectLocation(binding.cardViewBatasKota, binding.tvBatasKota, "Batas_Kota", "Batas Kota")
         }
-        binding.cardViewDanauSentani.setOnClickListener {
-            selectLocation(binding.cardViewDanauSentani, binding.tvDanauSentani, "Danau Sentani")
+        binding.cardViewYoka.setOnClickListener {
+            selectLocation(binding.cardViewYoka, binding.tvYoka, "Yoka", "Yoka")
         }
-        binding.cardViewKampungHarapan.setOnClickListener {
-            selectLocation(
-                binding.cardViewKampungHarapan,
-                binding.tvKampungHarapan,
-                "Kampung Harapan"
-            )
+        binding.cardViewYobeh.setOnClickListener {
+            selectLocation(binding.cardViewYobeh, binding.tvYobeh, "Yobeh", "Yobeh")
         }
 
+        // Setup judul & ikon sensor
         binding.itemPh.root.findViewById<TextView>(R.id.title).text = "pH"
         binding.itemTds.root.findViewById<TextView>(R.id.title).text = "TDS"
         binding.itemSuhu.root.findViewById<TextView>(R.id.title).text = "Suhu"
@@ -72,14 +70,19 @@ class BerandaFragment : Fragment() {
 
         binding.itemPh.root.findViewById<ImageView>(R.id.icon).setImageResource(R.drawable.ic_ph)
         binding.itemTds.root.findViewById<ImageView>(R.id.icon).setImageResource(R.drawable.ic_tds)
-        binding.itemSuhu.root.findViewById<ImageView>(R.id.icon).setImageResource(R.drawable.ic_suhu)
-        binding.itemKekeruhan.root.findViewById<ImageView>(R.id.icon).setImageResource(R.drawable.ic_kekeruhan)
+        binding.itemSuhu.root.findViewById<ImageView>(R.id.icon)
+            .setImageResource(R.drawable.ic_suhu)
+        binding.itemKekeruhan.root.findViewById<ImageView>(R.id.icon)
+            .setImageResource(R.drawable.ic_kekeruhan)
 
-        // Default tampilkan lokasi pertama
-        selectLocation(binding.cardViewBatasKota, binding.tvBatasKota, "Batas Kota")
+        // Pilihan lokasi default
+        selectLocation(binding.cardViewYoka, binding.tvYoka, "Yoka", "Yoka")
+
+        // Jalankan langsung pemuatan data lokasi default
+        loadAmbangBatas("Yoka")
     }
 
-    private fun selectLocation(card: CardView, textView: TextView, lokasi: String) {
+    private fun selectLocation(card: CardView, textView: TextView, lokasi: String, label: String) {
         val context = requireContext()
         val scaleUp = AnimationUtils.loadAnimation(context, R.anim.scale_up)
         card.startAnimation(scaleUp)
@@ -90,11 +93,10 @@ class BerandaFragment : Fragment() {
         card.setCardBackgroundColor(ContextCompat.getColor(context, R.color.menu_on))
         textView.setTextColor(ContextCompat.getColor(context, R.color.white))
 
-
         selectedCard = card
         selectedTextView = textView
 
-        binding.tvLokasi.text = lokasi.uppercase()
+        binding.tvLokasi.text = label.uppercase()
         binding.tvLokasi.startAnimation(scaleUp)
 
         loadAmbangBatas(lokasi)
@@ -106,7 +108,6 @@ class BerandaFragment : Fragment() {
         ambangListener = ambangRef.child(lokasi).addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 ambangData.clear()
-                val safeBinding = _binding ?: return
 
                 listOf("pH", "Suhu", "TDS", "Kekeruhan").forEach { param ->
                     val min = snapshot.child("$param/min").getValue(Double::class.java)
@@ -124,31 +125,45 @@ class BerandaFragment : Fragment() {
     private fun loadSensorData(lokasi: String) {
         dataListener?.let { lokasiRef.child(lokasi).removeEventListener(it) }
 
+        // 🔹 Tampilkan loading sebelum data muncul
+        binding.progressLoading.visibility = View.VISIBLE
+        binding.dataContainer.visibility = View.GONE
+        binding.layoutStatusEvaluasi.visibility = View.GONE
+
         dataListener = lokasiRef.child(lokasi).addValueEventListener(object : ValueEventListener {
             @SuppressLint("SetTextI18n")
             override fun onDataChange(snapshot: DataSnapshot) {
                 val safeBinding = _binding ?: return
-                if (!snapshot.exists()) return
+                binding.progressLoading.visibility = View.GONE
+                binding.dataContainer.visibility = View.VISIBLE
+                binding.layoutStatusEvaluasi.visibility = View.VISIBLE
+
+
+                if (!snapshot.exists()) {
+                    safeBinding.tvStatusEvaluasi.text = "Belum ada data sensor"
+                    binding.layoutStatusEvaluasi.setBackgroundResource(R.drawable.bg_status_warning)
+                    binding.icStatusEvaluasi.setImageResource(R.drawable.ic_info)
+                    return
+                }
 
                 val fadeIn = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
                 safeBinding.dataContainer.startAnimation(fadeIn)
 
                 val params = listOf("pH", "Suhu", "TDS", "Kekeruhan")
-
-                var adaBahaya = false
-                val nilaiData = mutableMapOf<String, Double?>()
+                val sensorEvaluations = mutableListOf<SensorEvaluation>()
 
                 for (param in params) {
                     val valueStr = snapshot.child(param).value?.toString() ?: "-"
                     val value = valueStr.toDoubleOrNull()
-                    nilaiData[param] = value
-
                     val (min, max) = ambangData[param] ?: (null to null)
+                    val evaluation = SensorEvaluation(param, value, min, max)
+                    sensorEvaluations.add(evaluation)
+
+                    // Update tampilan UI tiap sensor
                     val statusView = getStatusView(param)
                     val minmaxView = getMinMaxView(param)
                     val valueView = getValueView(param)
 
-                    // Update tampilan
                     valueView.text = when (param) {
                         "Suhu" -> "$valueStr°C"
                         "TDS" -> "$valueStr ppm"
@@ -156,93 +171,147 @@ class BerandaFragment : Fragment() {
                         else -> valueStr
                     }
                     minmaxView.text = "Min: ${min ?: "-"} | Max: ${max ?: "-"}"
-
-                    // Tentukan status
-                    if (value == null || min == null || max == null) {
-                        statusView.text = "DATA KOSONG"
-                        statusView.setBackgroundResource(R.drawable.bg_status_warning)
-                    } else if (value in min..max) {
-                        statusView.text = "AMAN"
-                        statusView.setBackgroundResource(R.drawable.bg_status_safe)
-                    } else {
-                        statusView.text = "BAHAYA"
-                        statusView.setBackgroundResource(R.drawable.bg_status_danger)
-                        adaBahaya = true
-
-                        // 🔹 Kirim ke service untuk notifikasi & alarm
-                        val intent = Intent(requireContext(), AlertService::class.java)
-                        intent.putExtra("lokasi", lokasi)
-                        intent.putExtra("parameter", param)
-                        intent.putExtra("value", valueStr)
-                        requireContext().startService(intent)
-                    }
-
+                    statusView.text = evaluation.status
+                    statusView.setBackgroundResource(
+                        when (evaluation.status) {
+                            "DALAM BATAS NORMAL" -> R.drawable.bg_status_safe
+                            "DI BAWAH AMBANG", "DI ATAS AMBANG" -> R.drawable.bg_status_danger
+                            else -> R.drawable.bg_status_warning
+                        }
+                    )
                 }
 
-                // 🔹 Simpan ke Riwayat setiap kali data berubah
-                simpanKeRiwayat(lokasi, nilaiData, adaBahaya)
+                // Evaluasi keseluruhan & update tampilan
+                val lokasiStatus = evaluateWaterQuality(sensorEvaluations)
+                binding.tvStatusEvaluasi.text = lokasiStatus
+
+                // Trigger notifikasi & simpan riwayat
+                triggerAlert(lokasi, sensorEvaluations)
+                simpanKeRiwayat(lokasi, sensorEvaluations)
             }
 
-            override fun onCancelled(error: DatabaseError) {}
+            override fun onCancelled(error: DatabaseError) {
+                binding.progressLoading.visibility = View.GONE
+            }
         })
     }
 
-    // 🔹 Tambahan: Fungsi untuk simpan ke Firebase Riwayat
-    // 🔹 Tambahan: Fungsi untuk simpan ke Firebase Riwayat lengkap dengan min-max
-    private fun simpanKeRiwayat(
-        lokasi: String,
-        nilaiData: Map<String, Double?>,
-        adaBahaya: Boolean
-    ) {
-        // Hanya simpan kalau ada bahaya
-        if (!adaBahaya) return
 
-        // Batasi penyimpanan minimal setiap 5 detik
+    private fun simpanKeRiwayat(lokasi: String, sensorEvaluations: List<SensorEvaluation>) {
         val now = System.currentTimeMillis()
-        if (now - lastSaveTime < 5_000) return
-        lastSaveTime = now
+        val lastSave = lastSaveTimes[lokasi] ?: 0L
 
-        val status = "BAHAYA"
-        val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-            .format(Date())
+        // Hitung jumlah sensor yang error
+        val triggered = sensorEvaluations.filter { it.isError() }
+        val errorCount = triggered.size
 
-        val dataRiwayat = mutableMapOf<String, Any?>(
-            "timestamp" to timestamp,
-            "status" to status
-        )
+        // 🔹 Tentukan interval berdasarkan kondisi
+        val interval = if (errorCount == 0) 30_000L else 10_000L // 30 detik jika aman, 10 detik jika error
 
-        // Simpan hanya parameter yang bahaya + deskripsi
-        val deskripsiList = mutableListOf<String>()
+        // Batasi penyimpanan sesuai interval per lokasi
+        if (now - lastSave < interval) return
+        lastSaveTimes[lokasi] = now
 
-        nilaiData.forEach { (param, value) ->
-            val (min, max) = ambangData[param] ?: (null to null)
-            if (value != null && min != null && max != null) {
-                when {
-                    value < min -> {
-                        dataRiwayat[param] = value
-                        dataRiwayat["${param}_min"] = min
-                        dataRiwayat["${param}_max"] = max
-                        deskripsiList.add("$param di bawah batas minimum ($value < $min)")
-                    }
-                    value > max -> {
-                        dataRiwayat[param] = value
-                        dataRiwayat["${param}_min"] = min
-                        dataRiwayat["${param}_max"] = max
-                        deskripsiList.add("$param melebihi batas maksimum ($value > $max)")
-                    }
-                }
-            }
+        val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+
+        // 🔹 Tentukan status umum
+        val status = when {
+            errorCount == 0 -> "AMAN"
+            errorCount in 1..2 -> "PERINGATAN"
+            else -> "KRITIKAL"
         }
 
-        // Jika tidak ada yang bahaya, keluar
-        if (deskripsiList.isEmpty()) return
+        // 🔹 Deskripsi interaktif semua sensor
+        val deskripsiBuilder = StringBuilder()
+        deskripsiBuilder.append("Evaluasi kualitas air di $lokasi:\n")
 
-        // Tambahkan deskripsi gabungan
-        dataRiwayat["deskripsi"] = deskripsiList.joinToString(separator = "; ")
+        sensorEvaluations.forEachIndexed { index, s ->
+            val kondisi = when {
+                s.value == null -> "Data sensor ${s.name} tidak terbaca."
+                s.value < (s.min ?: Double.MIN_VALUE) ->
+                    "${s.name} terlalu rendah (${s.value} < ${s.min}) — indikasi kualitas menurun."
+                s.value > (s.max ?: Double.MAX_VALUE) ->
+                    "${s.name} terlalu tinggi (${s.value} > ${s.max}) — indikasi pencemaran air."
+                else -> "${s.name}: ${s.value} (dalam batas normal)"
+            }
+            deskripsiBuilder.append("${index + 1}. $kondisi\n")
+        }
 
+        // 🔹 Siapkan data untuk Firebase
+        val dataRiwayat = mutableMapOf<String, Any?>(
+            "timestamp" to timestamp,
+            "status" to status,
+            "lokasi" to lokasi,
+            "deskripsi" to deskripsiBuilder.toString().trim()
+        )
+
+        // Simpan semua nilai sensor (baik aman maupun error)
+        sensorEvaluations.forEach { s ->
+            dataRiwayat[s.name] = s.value
+            dataRiwayat["${s.name}_min"] = s.min
+            dataRiwayat["${s.name}_max"] = s.max
+            dataRiwayat["${s.name}_status"] = s.status
+        }
+
+        // 🔹 Simpan ke Firebase di node sesuai lokasi
         val newKey = riwayatRef.child(lokasi).push().key ?: return
         riwayatRef.child(lokasi).child(newKey).setValue(dataRiwayat)
     }
+
+
+
+    private fun triggerAlert(lokasi: String, sensorEvaluations: List<SensorEvaluation>) {
+        val triggered = sensorEvaluations.filter { it.isError() }.map { it.description }
+        if (triggered.isNotEmpty()) {
+            // 🔹 Kirim notifikasi/alarm tanpa mengubah lokasi UI
+            val intent = Intent(requireContext(), AlertService::class.java)
+            intent.putExtra("lokasi", lokasi)
+            intent.putStringArrayListExtra("triggeredSensors", ArrayList(triggered))
+
+            // Hanya bunyi alarm jika ≥2 sensor error
+            if (triggered.size >= 2) {
+                requireContext().startService(intent)
+            } else {
+                // Hanya notifikasi, tanpa bunyi alarm
+                intent.putExtra("silent", true)
+                requireContext().startService(intent)
+            }
+        }
+    }
+
+
+    private fun evaluateWaterQuality(sensorEvaluations: List<SensorEvaluation>): String {
+        val errorCount = sensorEvaluations.count { it.isError() }
+        val statusText: String
+        val bgRes: Int
+        val iconRes: Int
+
+        when {
+            errorCount == 0 -> {
+                statusText = "Air Aman"
+                bgRes = R.drawable.bg_status_safe
+                iconRes = R.drawable.ic_checked
+            }
+            errorCount in 1..2 -> {
+                statusText = "Perhatian: Beberapa parameter menyimpang"
+                bgRes = R.drawable.bg_status_warning
+                iconRes = R.drawable.ic_warning
+            }
+            else -> {
+                statusText = "Kritikal: Indikasi Pencemaran Air!"
+                bgRes = R.drawable.bg_status_danger
+                iconRes = R.drawable.ic_danger
+            }
+        }
+
+        binding.layoutStatusEvaluasi.setBackgroundResource(bgRes)
+        binding.tvStatusEvaluasi.text = statusText
+        binding.icStatusEvaluasi.setImageResource(iconRes)
+
+        return statusText
+    }
+
+
 
 
     private fun getValueView(param: String): TextView = when (param) {
@@ -271,8 +340,34 @@ class BerandaFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        _binding = null
         dataListener?.let { lokasiRef.removeEventListener(it) }
         ambangListener?.let { ambangRef.removeEventListener(it) }
-        _binding = null
     }
+}
+
+// Data class evaluasi sensor akademis
+data class SensorEvaluation(
+    val name: String,
+    val value: Double?,
+    val min: Double?,
+    val max: Double?
+) {
+    val status: String
+        get() = when {
+            value == null -> "DATA TIDAK TERSEDIA"
+            value < (min ?: Double.MIN_VALUE) -> "DI BAWAH AMBANG"
+            value > (max ?: Double.MAX_VALUE) -> "DI ATAS AMBANG"
+            else -> "DALAM BATAS NORMAL"
+        }
+
+    val description: String
+        get() = when (status) {
+            "DI BAWAH AMBANG" -> "$name: $value < $min (indikasi kualitas menurun)"
+            "DI ATAS AMBANG" -> "$name: $value > $max (indikasi pencemaran / kualitas turun)"
+            "DALAM BATAS NORMAL" -> "$name: $value (Normal)"
+            else -> "$name: Data tidak tersedia"
+        }
+
+    fun isError(): Boolean = status != "DALAM BATAS NORMAL"
 }

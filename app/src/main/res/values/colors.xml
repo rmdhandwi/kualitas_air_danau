@@ -1,9 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Warna dasar -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Warna menu -->
     <color name="menu_on">#2196F3</color>
-    <color name="menu_off">#BFFFFDFD</color>
+    <color name="menu_off">#FFFFFF</color>
+
+    <!-- Warna status box -->
     <color name="status_bg">#FFE0E0E0</color>
     <color name="status_border">#FFB0B0B0</color>
+
+    <!-- 🔹 Warna tambahan untuk evaluasi kualitas air -->
+    <color name="safe">#4CAF50</color>          <!-- Hijau: Layak digunakan -->
+    <color name="warning">#FFC107</color>       <!-- Kuning: Perlu perhatian -->
+    <color name="danger">#F44336</color>        <!-- Merah: Tercemar / Tidak layak -->
+
+    <!-- 🔹 Warna status sensor -->
+    <color name="status_safe">#C8E6C9</color>   <!-- Hijau muda -->
+    <color name="status_warning">#FFF9C4</color> <!-- Kuning muda -->
+    <color name="status_danger">#FFCDD2</color>  <!-- Merah muda -->
+
+    <!-- 🔹 Warna teks status -->
+    <color name="text_safe">#1B5E20</color>
+    <color name="text_warning">#F57F17</color>
+    <color name="text_danger">#B71C1C</color>
+
+    <color name="blue_500">#2196F3</color>
+    <color name="blue_600">#1E88E5</color>
+    <color name="gray_200">#E0E0E0</color>
+    <color name="gray_600">#757575</color>
+    <color name="gray_700">#616161</color>
+    <color name="red_500">#F44336</color>
+
 </resources>

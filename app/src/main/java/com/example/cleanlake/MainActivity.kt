@@ -13,7 +13,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.bumptech.glide.Glide
 import com.example.cleanlake.Auth.LoginActivity
 import com.example.cleanlake.Fragment.*
 import com.example.cleanlake.databinding.ActivityMainBinding
@@ -26,8 +25,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var database: DatabaseReference
     private var userRole: String? = null
-
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,14 +39,11 @@ class MainActivity : AppCompatActivity() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
-                != PackageManager.PERMISSION_GRANTED) {
+                != PackageManager.PERMISSION_GRANTED
+            ) {
                 requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1)
             }
         }
-
-        // Default fragment saat awal (belum login → NoneFragment)
-        replaceFragment(NoneFragment())
-        binding.tvMenu.text = "Memuat..."
 
         // Tombol logout
         binding.logout.setOnClickListener {
@@ -59,43 +53,54 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * 🔹 Ambil data user yang sedang login dari Firebase
+     * 🔹 Jika belum login, langsung ke LoginActivity
      */
     private fun loadUserData() {
         val currentUser = auth.currentUser
         if (currentUser == null) {
-            setupMenuByRole(null)
+            // Langsung arahkan ke login
+            val intent = Intent(this, LoginActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
             return
         }
 
+        // 🔹 Tampilkan indikator loading
+        binding.progressLoading.visibility = View.VISIBLE
+        binding.tvMenu.text = "Memuat data ..."
+        binding.container.visibility = View.GONE
+        binding.customNav.visibility = View.GONE
+
         val userRef = database.child(currentUser.uid)
-        userRef.addValueEventListener(object : ValueEventListener {
+        userRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
+                binding.progressLoading.visibility = View.GONE
+                binding.container.visibility = View.VISIBLE
+                binding.customNav.visibility = View.VISIBLE
+
                 if (!snapshot.exists()) {
-                    setupMenuByRole(null)
+                    val intent = Intent(this@MainActivity, LoginActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
+                    finish()
                     return
                 }
 
                 val name = snapshot.child("namaLengkap").getValue(String::class.java) ?: "Guest"
-                val photoUrl = snapshot.child("imageUrl").getValue(String::class.java) ?: ""
                 userRole = snapshot.child("role").getValue(String::class.java) ?: "-"
 
-                // tampilkan nama & foto
                 binding.tvUsername.text = name
-                if (photoUrl.isNotEmpty()) {
-                    Glide.with(this@MainActivity)
-                        .load(photoUrl)
-                        .placeholder(R.drawable.ic_user_placeholder)
-                        .into(binding.ivProfile)
-                } else {
-                    binding.ivProfile.setImageResource(R.drawable.ic_user_placeholder)
-                }
-
                 setupMenuByRole(userRole)
             }
 
-            override fun onCancelled(error: DatabaseError) {}
+            override fun onCancelled(error: DatabaseError) {
+                binding.progressLoading.visibility = View.GONE
+                binding.tvMenu.text = "Gagal memuat data"
+            }
         })
     }
+
 
     /**
      * 🔹 Atur menu berdasarkan role user
@@ -127,9 +132,11 @@ class MainActivity : AppCompatActivity() {
             }
 
             else -> {
-                binding.customNav.visibility = View.GONE
-                replaceFragment(NoneFragment())
-                binding.tvMenu.text = "Tidak Login"
+                // Tidak mungkin karena user sudah login, tapi aman
+                val intent = Intent(this, LoginActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+                finish()
             }
         }
     }

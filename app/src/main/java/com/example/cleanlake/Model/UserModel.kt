@@ -8,6 +8,5 @@ data class UserModel(
     var role: String? = null,
     var noTelp: String? = null,
     var password: String? = null,
-    var imageUrl: String? = null
 )
 

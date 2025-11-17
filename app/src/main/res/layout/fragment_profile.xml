@@ -11,23 +11,6 @@
         android:gravity="center_horizontal"
         android:orientation="vertical">
 
-        <androidx.cardview.widget.CardView
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:layout_marginBottom="12dp"
-            android:elevation="10dp"
-            app:cardCornerRadius="100dp">
-
-            <!-- Foto Profil -->
-            <ImageView
-                android:id="@+id/ivProfile"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="fitXY"
-                android:src="@drawable/ic_user_placeholder" />
-        </androidx.cardview.widget.CardView>
-
-
         <!-- Mode Lihat -->
         <androidx.cardview.widget.CardView
             android:id="@+id/layoutView"
@@ -149,18 +132,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:visibility="gone">
-
-            <Button
-                android:id="@+id/btnUploadFoto"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginBottom="10dp"
-                android:background="@drawable/btn_global"
-                android:paddingHorizontal="20dp"
-                android:text="Upload Foto"
-                android:textColor="@android:color/white"
-                android:textSize="12dp" />
 
             <EditText
                 android:id="@+id/etName"

@@ -19,12 +19,11 @@ class AmbangFragment : Fragment() {
 
     private var _binding: FragmentAmbangBinding? = null
     private val binding get() = _binding!!
-    private lateinit var database: DatabaseReference
 
-    private var lokasiDipilih = "BatasKota"
+    private lateinit var database: DatabaseReference
+    private var lokasiDipilih = "Yoka"
     private var ambangListener: ValueEventListener? = null
 
-    // untuk simpan lokasi yang aktif
     private var selectedCard: CardView? = null
     private var selectedText: TextView? = null
 
@@ -38,67 +37,61 @@ class AmbangFragment : Fragment() {
         setupParameterLabels()
         setupLokasiCards()
 
+        // Lokasi default
+        selectLocation(binding.cardViewYoka, binding.tvYoka, "Yoka", "YOKA")
+
         binding.btnSimpanAmbang.setOnClickListener {
             simpanDataAmbang(lokasiDipilih)
         }
 
-        // Lokasi default
-        selectLocation(binding.cardViewBatasKota, binding.tvBatasKota, "BatasKota", "BATAS KOTA")
-
         return binding.root
     }
 
-    /** =========================
-     * 🔹 Label di setiap parameter
-     * ========================= */
-    private fun setupParameterLabels() {
-        binding.itemPh.tvParameter.text = "pH"
-        binding.itemSuhu.tvParameter.text = "Suhu (°C)"
-        binding.itemTds.tvParameter.text = "TDS (ppm)"
-        binding.itemKekeruhan.tvParameter.text = "Kekeruhan (NTU)"
+    // ==============================
+    // 🔹 Label Parameter
+    // ==============================
+    private fun setupParameterLabels() = binding.apply {
+        itemPh.tvParameter.text = "pH"
+        itemSuhu.tvParameter.text = "Suhu (°C)"
+        itemTds.tvParameter.text = "TDS (ppm)"
+        itemKekeruhan.tvParameter.text = "Kekeruhan (NTU)"
     }
 
-    /** =========================
-     * 🔹 Setup card lokasi + animasi klik
-     * ========================= */
-    private fun setupLokasiCards() {
-        binding.apply {
-            cardViewBatasKota.setOnClickListener {
-                selectLocation(cardViewBatasKota, tvBatasKota, "Batas Kota", "BATAS KOTA")
-            }
-            cardViewDanauSentani.setOnClickListener {
-                selectLocation(cardViewDanauSentani, tvDanauSentani, "Danau Sentani", "DANAU SENTANI")
-            }
-            cardViewKampungHarapan.setOnClickListener {
-                selectLocation(cardViewKampungHarapan, tvKampungHarapan, "Kampung Harapan", "KAMPUNG HARAPAN")
-            }
+    // ==============================
+    // 🔹 Setup Lokasi (Card)
+    // ==============================
+    private fun setupLokasiCards() = binding.apply {
+        cardViewYoka.setOnClickListener {
+            selectLocation(cardViewYoka, tvYoka, "Yoka", "YOKA")
+        }
+        cardViewBatasKota.setOnClickListener {
+            selectLocation(cardViewBatasKota, tvBatasKota, "Batas_Kota", "BATAS KOTA")
+        }
+        cardViewYobeh.setOnClickListener {
+            selectLocation(cardViewYobeh, tvYobeh, "Yobeh", "YOBEH")
         }
     }
 
-    /** =========================
-     * 🔹 Fungsi pilih lokasi (ada animasi & highlight)
-     * ========================= */
+    // ==============================
+    // 🔹 Pilih Lokasi & Load Data
+    // ==============================
     private fun selectLocation(card: CardView, textView: TextView, lokasi: String, label: String) {
         val context = requireContext()
-
-        // animasi
         val scaleUp = AnimationUtils.loadAnimation(context, R.anim.scale_up)
         val fadeIn = AnimationUtils.loadAnimation(context, R.anim.fade_in)
 
-        // reset lokasi sebelumnya
+        // Reset tampilan card sebelumnya
         selectedCard?.setCardBackgroundColor(ContextCompat.getColor(context, R.color.menu_off))
         selectedText?.setTextColor(ContextCompat.getColor(context, R.color.black))
 
-        // ubah warna card aktif
+        // Aktifkan card baru
         card.setCardBackgroundColor(ContextCompat.getColor(context, R.color.menu_on))
         textView.setTextColor(ContextCompat.getColor(context, R.color.white))
         card.startAnimation(scaleUp)
 
-        // simpan card aktif
         selectedCard = card
         selectedText = textView
 
-        // ubah label lokasi utama
         binding.tvLokasi.text = label
         binding.tvLokasi.startAnimation(fadeIn)
 
@@ -106,23 +99,29 @@ class AmbangFragment : Fragment() {
         loadDataAmbang(lokasi)
     }
 
-    /** =========================
-     * 🔹 Load data dari Firebase (safe binding)
-     * ========================= */
+    // ==============================
+    // 🔹 Load Data Ambang dari Firebase
+    // ==============================
     private fun loadDataAmbang(lokasi: String) {
+        // Hapus listener lama biar gak leak
         ambangListener?.let { database.child(lokasi).removeEventListener(it) }
 
-        val fadeOut = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_out)
         val fadeIn = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
+        val fadeOut = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_out)
+
         binding.dataContainer.startAnimation(fadeOut)
 
-        ambangListener = database.child(lokasi).addValueEventListener(object : ValueEventListener {
+        val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val safeBinding = _binding ?: return
+                if (!isAdded || _binding == null) return
+
+                val safeBinding = binding
 
                 fun setValue(item: ItemAmbangBatasBinding, key: String) {
-                    item.etMin.setText(snapshot.child("$key/min").getValue(Double::class.java)?.toString() ?: "")
-                    item.etMax.setText(snapshot.child("$key/max").getValue(Double::class.java)?.toString() ?: "")
+                    val min = snapshot.child("$key/min").getValue(Double::class.java)
+                    val max = snapshot.child("$key/max").getValue(Double::class.java)
+                    item.etMin.setText(min?.toString() ?: "")
+                    item.etMax.setText(max?.toString() ?: "")
                 }
 
                 safeBinding.apply {
@@ -135,61 +134,58 @@ class AmbangFragment : Fragment() {
             }
 
             override fun onCancelled(error: DatabaseError) {
-                if (isAdded && _binding != null) {
-                    Toast.makeText(requireContext(), "Gagal memuat data", Toast.LENGTH_SHORT).show()
-                }
+                if (!isAdded || _binding == null) return
+                Toast.makeText(requireContext(), "Gagal memuat data: ${error.message}", Toast.LENGTH_SHORT).show()
             }
-        })
+        }
+
+        ambangListener = listener
+        database.child(lokasi).addValueEventListener(listener)
     }
 
-    /** =========================
-     * 🔹 Simpan data ambang batas ke Firebase
-     * ========================= */
+    // ==============================
+    // 🔹 Simpan Data ke Firebase
+    // ==============================
     private fun simpanDataAmbang(lokasi: String) {
         val safeBinding = _binding ?: return
 
-        fun getDouble(value: String) = value.toDoubleOrNull()
-
-        safeBinding.apply {
-            val phMin = getDouble(itemPh.etMin.text.toString())
-            val phMax = getDouble(itemPh.etMax.text.toString())
-            val suhuMin = getDouble(itemSuhu.etMin.text.toString())
-            val suhuMax = getDouble(itemSuhu.etMax.text.toString())
-            val tdsMin = getDouble(itemTds.etMin.text.toString())
-            val tdsMax = getDouble(itemTds.etMax.text.toString())
-            val kekeruhanMin = getDouble(itemKekeruhan.etMin.text.toString())
-            val kekeruhanMax = getDouble(itemKekeruhan.etMax.text.toString())
-
-            if (listOf(phMin, phMax, suhuMin, suhuMax, tdsMin, tdsMax, kekeruhanMin, kekeruhanMax).any { it == null }) {
-                Toast.makeText(requireContext(), "Isi semua nilai dengan benar", Toast.LENGTH_SHORT).show()
-                return
-            }
-
-            val ambangData = mapOf(
-                "pH/min" to phMin!!,
-                "pH/max" to phMax!!,
-                "Suhu/min" to suhuMin!!,
-                "Suhu/max" to suhuMax!!,
-                "TDS/min" to tdsMin!!,
-                "TDS/max" to tdsMax!!,
-                "Kekeruhan/min" to kekeruhanMin!!,
-                "Kekeruhan/max" to kekeruhanMax!!
-            )
-
-            database.child(lokasi).updateChildren(ambangData)
-                .addOnSuccessListener {
-                    Toast.makeText(requireContext(), "Data ambang batas tersimpan", Toast.LENGTH_SHORT).show()
-                    val anim = AnimationUtils.loadAnimation(requireContext(), R.anim.scale_up)
-                    btnSimpanAmbang.startAnimation(anim)
-                }
-                .addOnFailureListener {
-                    Toast.makeText(requireContext(), "Gagal menyimpan data", Toast.LENGTH_SHORT).show()
-                }
+        fun parseDouble(value: String): Double? {
+            val parsed = value.toDoubleOrNull()
+            return if (parsed != null && parsed >= 0) parsed else null
         }
+
+        val dataMap = mapOf(
+            "pH/min" to parseDouble(safeBinding.itemPh.etMin.text.toString()),
+            "pH/max" to parseDouble(safeBinding.itemPh.etMax.text.toString()),
+            "Suhu/min" to parseDouble(safeBinding.itemSuhu.etMin.text.toString()),
+            "Suhu/max" to parseDouble(safeBinding.itemSuhu.etMax.text.toString()),
+            "TDS/min" to parseDouble(safeBinding.itemTds.etMin.text.toString()),
+            "TDS/max" to parseDouble(safeBinding.itemTds.etMax.text.toString()),
+            "Kekeruhan/min" to parseDouble(safeBinding.itemKekeruhan.etMin.text.toString()),
+            "Kekeruhan/max" to parseDouble(safeBinding.itemKekeruhan.etMax.text.toString())
+        )
+
+        if (dataMap.values.any { it == null }) {
+            Toast.makeText(requireContext(), "Isi semua nilai dengan angka valid!", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        database.child(lokasi).updateChildren(dataMap.mapValues { it.value as Any })
+            .addOnSuccessListener {
+                if (!isAdded) return@addOnSuccessListener
+                val anim = AnimationUtils.loadAnimation(requireContext(), R.anim.scale_up)
+                binding.btnSimpanAmbang.startAnimation(anim)
+                Toast.makeText(requireContext(), "✅ Data ambang batas tersimpan", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener {
+                if (!isAdded) return@addOnFailureListener
+                Toast.makeText(requireContext(), "❌ Gagal menyimpan data", Toast.LENGTH_SHORT).show()
+            }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        // Pastikan listener dilepas agar tidak leak
         ambangListener?.let { database.child(lokasiDipilih).removeEventListener(it) }
         ambangListener = null
         _binding = null
