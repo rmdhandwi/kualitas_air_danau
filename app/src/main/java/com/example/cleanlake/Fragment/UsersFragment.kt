@@ -127,10 +127,16 @@ class UsersFragment : Fragment() {
             etUsername.setText(user.username)
             etEmail.setText(user.email)
             etTelp.setText(user.noTelp)
-            etEmail.isEnabled = false
-            etEmail.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray_200))
-            etEmail.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.status_bg))
+
+            // ✅ Cara aman
+            etEmail.isEnabled = true
+            etEmail.isFocusable = false
+            etEmail.isClickable = false
+
+            etEmail.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
+            etEmail.background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_input)
         }
+
 
         btnClose.setOnClickListener { dialog.dismiss() }
 
