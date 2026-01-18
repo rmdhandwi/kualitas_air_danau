@@ -125,76 +125,80 @@ class BerandaFragment : Fragment() {
     private fun loadSensorData(lokasi: String) {
         dataListener?.let { lokasiRef.child(lokasi).removeEventListener(it) }
 
-        // 🔹 Tampilkan loading sebelum data muncul
-        binding.progressLoading.visibility = View.VISIBLE
-        binding.dataContainer.visibility = View.GONE
-        binding.layoutStatusEvaluasi.visibility = View.GONE
+        val b = _binding ?: return
+        b.progressLoading.visibility = View.VISIBLE
+        b.dataContainer.visibility = View.GONE
+        b.layoutStatusEvaluasi.visibility = View.GONE
 
-        dataListener = lokasiRef.child(lokasi).addValueEventListener(object : ValueEventListener {
-            @SuppressLint("SetTextI18n")
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val safeBinding = _binding ?: return
-                binding.progressLoading.visibility = View.GONE
-                binding.dataContainer.visibility = View.VISIBLE
-                binding.layoutStatusEvaluasi.visibility = View.VISIBLE
+        dataListener = lokasiRef.child(lokasi)
+            .addValueEventListener(object : ValueEventListener {
 
+                @SuppressLint("SetTextI18n")
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val b = _binding ?: return
+                    if (!isAdded) return
 
-                if (!snapshot.exists()) {
-                    safeBinding.tvStatusEvaluasi.text = "Belum ada data sensor"
-                    binding.layoutStatusEvaluasi.setBackgroundResource(R.drawable.bg_status_warning)
-                    binding.icStatusEvaluasi.setImageResource(R.drawable.ic_info)
-                    return
-                }
+                    b.progressLoading.visibility = View.GONE
+                    b.dataContainer.visibility = View.VISIBLE
+                    b.layoutStatusEvaluasi.visibility = View.VISIBLE
 
-                val fadeIn = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
-                safeBinding.dataContainer.startAnimation(fadeIn)
-
-                val params = listOf("pH", "Suhu", "TDS", "Kekeruhan")
-                val sensorEvaluations = mutableListOf<SensorEvaluation>()
-
-                for (param in params) {
-                    val valueStr = snapshot.child(param).value?.toString() ?: "-"
-                    val value = valueStr.toDoubleOrNull()
-                    val (min, max) = ambangData[param] ?: (null to null)
-                    val evaluation = SensorEvaluation(param, value, min, max)
-                    sensorEvaluations.add(evaluation)
-
-                    // Update tampilan UI tiap sensor
-                    val statusView = getStatusView(param)
-                    val minmaxView = getMinMaxView(param)
-                    val valueView = getValueView(param)
-
-                    valueView.text = when (param) {
-                        "Suhu" -> "$valueStr°C"
-                        "TDS" -> "$valueStr ppm"
-                        "Kekeruhan" -> "$valueStr NTU"
-                        else -> valueStr
+                    if (!snapshot.exists()) {
+                        b.tvStatusEvaluasi.text = "Belum ada data sensor"
+                        b.layoutStatusEvaluasi.setBackgroundResource(R.drawable.bg_status_warning)
+                        b.icStatusEvaluasi.setImageResource(R.drawable.ic_info)
+                        return
                     }
-                    minmaxView.text = "Min: ${min ?: "-"} | Max: ${max ?: "-"}"
-                    statusView.text = evaluation.status
-                    statusView.setBackgroundResource(
-                        when (evaluation.status) {
-                            "DALAM BATAS NORMAL" -> R.drawable.bg_status_safe
-                            "DI BAWAH AMBANG", "DI ATAS AMBANG" -> R.drawable.bg_status_danger
-                            else -> R.drawable.bg_status_warning
+
+                    val fadeIn = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
+                    b.dataContainer.startAnimation(fadeIn)
+
+                    val params = listOf("pH", "Suhu", "TDS", "Kekeruhan")
+                    val sensorEvaluations = mutableListOf<SensorEvaluation>()
+
+                    for (param in params) {
+                        val valueStr = snapshot.child(param).value?.toString() ?: "-"
+                        val value = valueStr.toDoubleOrNull()
+                        val (min, max) = ambangData[param] ?: (null to null)
+
+                        val evaluation = SensorEvaluation(param, value, min, max)
+                        sensorEvaluations.add(evaluation)
+
+                        val statusView = getStatusView(param)
+                        val minmaxView = getMinMaxView(param)
+                        val valueView = getValueView(param)
+
+                        valueView.text = when (param) {
+                            "Suhu" -> "$valueStr°C"
+                            "TDS" -> "$valueStr ppm"
+                            "Kekeruhan" -> "$valueStr NTU"
+                            else -> valueStr
                         }
-                    )
+
+                        minmaxView.text = "Min: ${min ?: "-"} | Max: ${max ?: "-"}"
+                        statusView.text = evaluation.status
+
+                        statusView.setBackgroundResource(
+                            when (evaluation.status) {
+                                "DALAM BATAS NORMAL" -> R.drawable.bg_status_safe
+                                "DI BAWAH AMBANG", "DI ATAS AMBANG" -> R.drawable.bg_status_danger
+                                else -> R.drawable.bg_status_warning
+                            }
+                        )
+                    }
+
+                    val lokasiStatus = evaluateWaterQuality(sensorEvaluations)
+                    b.tvStatusEvaluasi.text = lokasiStatus
+
+                    triggerAlert(lokasi, sensorEvaluations)
+                    simpanKeRiwayat(lokasi, sensorEvaluations)
                 }
 
-                // Evaluasi keseluruhan & update tampilan
-                val lokasiStatus = evaluateWaterQuality(sensorEvaluations)
-                binding.tvStatusEvaluasi.text = lokasiStatus
-
-                // Trigger notifikasi & simpan riwayat
-                triggerAlert(lokasi, sensorEvaluations)
-                simpanKeRiwayat(lokasi, sensorEvaluations)
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                binding.progressLoading.visibility = View.GONE
-            }
-        })
+                override fun onCancelled(error: DatabaseError) {
+                    _binding?.progressLoading?.visibility = View.GONE
+                }
+            })
     }
+
 
 
     private fun simpanKeRiwayat(lokasi: String, sensorEvaluations: List<SensorEvaluation>) {
@@ -339,11 +343,14 @@ class BerandaFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
         dataListener?.let { lokasiRef.removeEventListener(it) }
         ambangListener?.let { ambangRef.removeEventListener(it) }
+        dataListener = null
+        ambangListener = null
+        _binding = null
+        super.onDestroyView()
     }
+
 }
 
 // Data class evaluasi sensor akademis

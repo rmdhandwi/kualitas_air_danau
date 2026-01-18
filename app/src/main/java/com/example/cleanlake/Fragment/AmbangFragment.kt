@@ -148,40 +148,51 @@ class AmbangFragment : Fragment() {
     // ==============================
     private fun simpanDataAmbang(lokasi: String) {
         val safeBinding = _binding ?: return
+        if (!isAdded) return
 
         fun parseDouble(value: String): Double? {
-            val parsed = value.toDoubleOrNull()
-            return if (parsed != null && parsed >= 0) parsed else null
+            return value.toDoubleOrNull()
         }
 
-        val dataMap = mapOf(
-            "pH/min" to parseDouble(safeBinding.itemPh.etMin.text.toString()),
-            "pH/max" to parseDouble(safeBinding.itemPh.etMax.text.toString()),
-            "Suhu/min" to parseDouble(safeBinding.itemSuhu.etMin.text.toString()),
-            "Suhu/max" to parseDouble(safeBinding.itemSuhu.etMax.text.toString()),
-            "TDS/min" to parseDouble(safeBinding.itemTds.etMin.text.toString()),
-            "TDS/max" to parseDouble(safeBinding.itemTds.etMax.text.toString()),
-            "Kekeruhan/min" to parseDouble(safeBinding.itemKekeruhan.etMin.text.toString()),
-            "Kekeruhan/max" to parseDouble(safeBinding.itemKekeruhan.etMax.text.toString())
+        val updateMap = HashMap<String, Any>()
+
+        val dataList = listOf(
+            Triple("pH/min", safeBinding.itemPh.etMin.text.toString(), "pH"),
+            Triple("pH/max", safeBinding.itemPh.etMax.text.toString(), "pH"),
+            Triple("Suhu/min", safeBinding.itemSuhu.etMin.text.toString(), "Suhu"),
+            Triple("Suhu/max", safeBinding.itemSuhu.etMax.text.toString(), "Suhu"),
+            Triple("TDS/min", safeBinding.itemTds.etMin.text.toString(), "TDS"),
+            Triple("TDS/max", safeBinding.itemTds.etMax.text.toString(), "TDS"),
+            Triple("Kekeruhan/min", safeBinding.itemKekeruhan.etMin.text.toString(), "Kekeruhan"),
+            Triple("Kekeruhan/max", safeBinding.itemKekeruhan.etMax.text.toString(), "Kekeruhan")
         )
 
-        if (dataMap.values.any { it == null }) {
-            Toast.makeText(requireContext(), "Isi semua nilai dengan angka valid!", Toast.LENGTH_SHORT).show()
-            return
+        for ((key, value, label) in dataList) {
+            val parsed = parseDouble(value)
+            if (parsed == null) {
+                Toast.makeText(requireContext(), "❗ Nilai $label tidak valid", Toast.LENGTH_SHORT).show()
+                return
+            }
+            updateMap[key] = parsed
         }
 
-        database.child(lokasi).updateChildren(dataMap.mapValues { it.value as Any })
+        // 🔒 Disable tombol agar tidak double klik
+        binding.btnSimpanAmbang.isEnabled = false
+
+        database.child(lokasi)
+            .updateChildren(updateMap)
             .addOnSuccessListener {
                 if (!isAdded) return@addOnSuccessListener
-                val anim = AnimationUtils.loadAnimation(requireContext(), R.anim.scale_up)
-                binding.btnSimpanAmbang.startAnimation(anim)
-                Toast.makeText(requireContext(), "✅ Data ambang batas tersimpan", Toast.LENGTH_SHORT).show()
+                binding.btnSimpanAmbang.isEnabled = true
+                Toast.makeText(requireContext(), "✅ Ambang batas tersimpan", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener {
                 if (!isAdded) return@addOnFailureListener
+                binding.btnSimpanAmbang.isEnabled = true
                 Toast.makeText(requireContext(), "❌ Gagal menyimpan data", Toast.LENGTH_SHORT).show()
             }
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()
