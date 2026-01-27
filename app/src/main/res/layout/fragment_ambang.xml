@@ -23,7 +23,7 @@
 
             <!-- Item 1 -->
             <FrameLayout
-                android:id="@+id/mnBatasKota"
+                android:id="@+id/mnLokasi1"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="4dp"
@@ -31,7 +31,7 @@
 
                 <!-- Card di bawah -->
                 <androidx.cardview.widget.CardView
-                    android:id="@+id/cardViewYoka"
+                    android:id="@+id/cardViewLokasi1"
                     android:layout_width="match_parent"
                     android:layout_height="80dp"
                     android:layout_marginTop="15dp"
@@ -43,14 +43,14 @@
                     tools:ignore="DuplicateIds">
 
                     <TextView
-                        android:id="@+id/tvYoka"
+                        android:id="@+id/tvLokasi1"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center"
-                        android:text="Yoka"
+                        android:paddingTop="10dp"
+                        android:text="Lokasi1"
                         android:textColor="@color/black"
                         android:textSize="14sp"
-                        android:paddingTop="10dp"
                         android:textStyle="bold" />
                 </androidx.cardview.widget.CardView>
 
@@ -67,14 +67,14 @@
 
             <!-- Item 2 -->
             <FrameLayout
-                android:id="@+id/mnDanauSentani"
+                android:id="@+id/mnLokasi2"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="4dp"
                 android:layout_weight="1">
 
                 <androidx.cardview.widget.CardView
-                    android:id="@+id/cardViewBatasKota"
+                    android:id="@+id/cardViewLokasi2"
                     android:layout_width="match_parent"
                     android:layout_height="80dp"
                     android:layout_marginTop="15dp"
@@ -86,12 +86,12 @@
                     tools:ignore="DuplicateIds">
 
                     <TextView
-                        android:id="@+id/tvBatasKota"
+                        android:id="@+id/tvLokasi2"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:paddingTop="10dp"
-                        android:text="Batas Kota"
+                        android:text="Lokasi2"
                         android:textColor="@color/black"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -109,14 +109,14 @@
 
             <!-- Item 3 -->
             <FrameLayout
-                android:id="@+id/mnKampungHarapan"
+                android:id="@+id/mnLokasi3"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="4dp"
                 android:layout_weight="1">
 
                 <androidx.cardview.widget.CardView
-                    android:id="@+id/cardViewYobeh"
+                    android:id="@+id/cardViewLokasi3"
                     android:layout_width="match_parent"
                     android:layout_height="80dp"
                     android:layout_marginTop="15dp"
@@ -128,11 +128,11 @@
                     tools:ignore="DuplicateIds">
 
                     <TextView
-                        android:id="@+id/tvYobeh"
+                        android:id="@+id/tvLokasi3"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center"
-                        android:text="Yobeh"
+                        android:text="Lokasi3"
                         android:textColor="@color/black"
                         android:textSize="14sp"
                         android:paddingTop="10dp"
@@ -151,17 +151,6 @@
 
         </LinearLayout>
 
-
-        <!-- ==== Judul Lokasi ==== -->
-        <TextView
-            android:id="@+id/tvLokasi"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="BATAS KOTA"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-
         <!-- Form Input Parameter -->
         <ScrollView
             android:id="@+id/dataContainer"
@@ -176,6 +165,45 @@
                 android:layout_marginTop="12dp"
                 android:paddingBottom="10dp"
                 android:orientation="vertical">
+
+                <!-- ==== Edit Nama Lokasi ==== -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Nama Lokasi"
+                            android:textStyle="bold"
+                            android:textSize="14sp" />
+
+                        <EditText
+                            android:id="@+id/etNamaLokasi"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Masukkan nama lokasi"
+                            android:inputType="textPersonName" />
+
+                        <Button
+                            android:id="@+id/btnSimpanNamaLokasi"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Simpan Nama Lokasi"
+                            android:layout_marginTop="8dp"
+                            android:background="@drawable/btn_global"
+                            android:textColor="#FFF"/>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
 
                 <!-- pH -->
                 <include

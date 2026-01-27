@@ -2,6 +2,7 @@ package com.example.cleanlake.Fragment
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -33,6 +34,13 @@ class BerandaFragment : Fragment() {
     private var dataListener: ValueEventListener? = null
     private var ambangListener: ValueEventListener? = null
 
+    private var isMonitoringActive = false
+    private var lokasiAktifId = "L001"
+
+    private var alarmSedangAktif = false
+    private var lokasiAlarmAktif: String? = null
+
+
     private var ambangData: MutableMap<String, Pair<Double?, Double?>> = mutableMapOf()
     private val lastSaveTimes = mutableMapOf<String, Long>()
 
@@ -52,14 +60,14 @@ class BerandaFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Setup lokasi
-        binding.cardViewBatasKota.setOnClickListener {
-            selectLocation(binding.cardViewBatasKota, binding.tvBatasKota, "Batas_Kota", "Batas Kota")
+        binding.cardViewLokasi1.setOnClickListener {
+            selectLocation(binding.cardViewLokasi1, binding.tvLokasi1, "L001")
         }
-        binding.cardViewYoka.setOnClickListener {
-            selectLocation(binding.cardViewYoka, binding.tvYoka, "Yoka", "Yoka")
+        binding.cardViewLokasi2.setOnClickListener {
+            selectLocation(binding.cardViewLokasi2, binding.tvLokasi2, "L002")
         }
-        binding.cardViewYobeh.setOnClickListener {
-            selectLocation(binding.cardViewYobeh, binding.tvYobeh, "Yobeh", "Yobeh")
+        binding.cardViewLokasi3.setOnClickListener {
+            selectLocation(binding.cardViewLokasi3, binding.tvLokasi3, "L003")
         }
 
         // Setup judul & ikon sensor
@@ -76,31 +84,69 @@ class BerandaFragment : Fragment() {
             .setImageResource(R.drawable.ic_kekeruhan)
 
         // Pilihan lokasi default
-        selectLocation(binding.cardViewYoka, binding.tvYoka, "Yoka", "Yoka")
+        selectLocation(binding.cardViewLokasi1, binding.tvLokasi1, "L001")
+
 
         // Jalankan langsung pemuatan data lokasi default
-        loadAmbangBatas("Yoka")
+        loadAmbangBatas("L001")
+        loadNamaLokasi()
     }
 
-    private fun selectLocation(card: CardView, textView: TextView, lokasi: String, label: String) {
+
+    private fun selectLocation(card: CardView, textView: TextView, lokasiId: String) {
+        // Matikan alarm saat ganti lokasi
+        val stopIntent = Intent(requireContext(), AlertService::class.java).apply {
+            action = AlertService.ACTION_STOP_ALARM
+        }
+        requireContext().startService(stopIntent)
+        alarmSedangAktif = false
+        lokasiAlarmAktif = null
+        lokasiAktifId = lokasiId
         val context = requireContext()
         val scaleUp = AnimationUtils.loadAnimation(context, R.anim.scale_up)
-        card.startAnimation(scaleUp)
+        val fadeOut = AnimationUtils.loadAnimation(context, R.anim.fade_out)
+        val slideFadeIn = AnimationUtils.loadAnimation(context, R.anim.slide_fase_in)
 
         selectedCard?.setCardBackgroundColor(ContextCompat.getColor(context, R.color.menu_off))
         selectedTextView?.setTextColor(ContextCompat.getColor(context, R.color.black))
 
         card.setCardBackgroundColor(ContextCompat.getColor(context, R.color.menu_on))
         textView.setTextColor(ContextCompat.getColor(context, R.color.white))
+        card.startAnimation(scaleUp)
+
 
         selectedCard = card
         selectedTextView = textView
 
-        binding.tvLokasi.text = label.uppercase()
-        binding.tvLokasi.startAnimation(scaleUp)
-
-        loadAmbangBatas(lokasi)
+        // Animasi container ambang
+        binding.dataContainer.startAnimation(fadeOut)
+        binding.dataContainer.postDelayed({
+            loadSensorData(lokasiId)
+            binding.dataContainer.startAnimation(slideFadeIn)
+        }, 150)
     }
+
+
+    private fun loadNamaLokasi() {
+        val ref = FirebaseDatabase.getInstance().getReference("Lokasi")
+
+        ref.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (!isAdded || _binding == null) return  // 🔒 anti crash
+                binding.tvLokasi1.text =
+                    snapshot.child("L001/nama").getValue(String::class.java) ?: "Lokasi 1"
+
+                binding.tvLokasi2.text =
+                    snapshot.child("L002/nama").getValue(String::class.java) ?: "Lokasi 2"
+
+                binding.tvLokasi3.text =
+                    snapshot.child("L003/nama").getValue(String::class.java) ?: "Lokasi 3"
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        })
+    }
+
 
     private fun loadAmbangBatas(lokasi: String) {
         ambangListener?.let { ambangRef.child(lokasi).removeEventListener(it) }
@@ -199,8 +245,6 @@ class BerandaFragment : Fragment() {
             })
     }
 
-
-
     private fun simpanKeRiwayat(lokasi: String, sensorEvaluations: List<SensorEvaluation>) {
         val now = System.currentTimeMillis()
         val lastSave = lastSaveTimes[lokasi] ?: 0L
@@ -262,27 +306,50 @@ class BerandaFragment : Fragment() {
         riwayatRef.child(lokasi).child(newKey).setValue(dataRiwayat)
     }
 
+    private fun triggerAlert(lokasiId: String, sensorEvaluations: List<SensorEvaluation>) {
 
+        if (!isMonitoringActive || !isResumed) return
 
-    private fun triggerAlert(lokasi: String, sensorEvaluations: List<SensorEvaluation>) {
+        val errorCount = sensorEvaluations.count { it.isError() }
         val triggered = sensorEvaluations.filter { it.isError() }.map { it.description }
-        if (triggered.isNotEmpty()) {
-            // 🔹 Kirim notifikasi/alarm tanpa mengubah lokasi UI
-            val intent = Intent(requireContext(), AlertService::class.java)
-            intent.putExtra("lokasi", lokasi)
-            intent.putStringArrayListExtra("triggeredSensors", ArrayList(triggered))
+        if (triggered.isEmpty()) return
 
-            // Hanya bunyi alarm jika ≥2 sensor error
-            if (triggered.size >= 2) {
-                requireContext().startService(intent)
-            } else {
-                // Hanya notifikasi, tanpa bunyi alarm
-                intent.putExtra("silent", true)
-                requireContext().startService(intent)
-            }
-        }
+        FirebaseDatabase.getInstance()
+            .getReference("Lokasi")
+            .child(lokasiId)
+            .child("nama")
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val namaLokasi = snapshot.getValue(String::class.java) ?: lokasiId
+
+                    val intent = Intent(requireContext(), AlertService::class.java)
+                    intent.putExtra("lokasi", namaLokasi)
+                    intent.putStringArrayListExtra("triggeredSensors", ArrayList(triggered))
+
+                    if (errorCount >= 2) {
+                        // 🔊 Notif + Alarm
+                        requireContext().startService(intent)
+                        alarmSedangAktif = true
+                    } else {
+                        // 🔔 Notif saja (silent)
+                        intent.putExtra("silent", true)
+                        requireContext().startService(intent)
+
+                        // Jika sebelumnya alarm bunyi, matikan
+                        if (alarmSedangAktif) {
+                            val stopIntent = Intent(requireContext(), AlertService::class.java).apply {
+                                action = AlertService.ACTION_STOP_ALARM
+                            }
+                            requireContext().startService(stopIntent)
+                            alarmSedangAktif = false
+                        }
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {}
+            })
     }
-
 
     private fun evaluateWaterQuality(sensorEvaluations: List<SensorEvaluation>): String {
         val errorCount = sensorEvaluations.count { it.isError() }
@@ -314,9 +381,6 @@ class BerandaFragment : Fragment() {
 
         return statusText
     }
-
-
-
 
     private fun getValueView(param: String): TextView = when (param) {
         "pH" -> binding.itemPh.root.findViewById(R.id.value)
@@ -351,6 +415,22 @@ class BerandaFragment : Fragment() {
         super.onDestroyView()
     }
 
+    override fun onResume() {
+        super.onResume()
+        isMonitoringActive = true
+    }
+
+    override fun onPause() {
+        super.onPause()
+        isMonitoringActive = false
+
+        val stopIntent = Intent(requireContext(), AlertService::class.java).apply {
+            action = AlertService.ACTION_STOP_ALARM
+        }
+        requireContext().startService(stopIntent)
+    }
+
+
 }
 
 // Data class evaluasi sensor akademis
@@ -378,3 +458,6 @@ data class SensorEvaluation(
 
     fun isError(): Boolean = status != "DALAM BATAS NORMAL"
 }
+
+
+

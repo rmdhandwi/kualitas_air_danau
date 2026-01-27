@@ -267,6 +267,8 @@ class UsersFragment : Fragment() {
             .show()
     }
 
+
+
     override fun onDestroyView() {
         super.onDestroyView()
         userListener?.let { database.removeEventListener(it) }

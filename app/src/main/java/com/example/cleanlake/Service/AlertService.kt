@@ -16,114 +16,141 @@ import com.example.cleanlake.R
 class AlertService : Service() {
 
     private var mediaPlayer: MediaPlayer? = null
-    private val channelId = "alert_channel_id"
-    private val controlChannelId = "alarm_control_channel"
-    private val controlNotificationId = 9999
+    private val monitorChannelId = "cleanlake_monitor"
+    private val alertChannelId = "cleanlake_alert"
+    private val controlChannelId = "cleanlake_control"
+    private val controlNotificationId = 8888
 
     companion object {
         const val ACTION_STOP_ALARM = "com.example.cleanlake.STOP_ALARM"
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val action = intent?.action
+    override fun onCreate() {
+        super.onCreate()
+        startForeground(1, createForegroundNotification())
+    }
 
-        if (action == ACTION_STOP_ALARM) {
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+
+        if (intent?.action == ACTION_STOP_ALARM) {
             stopAlarm()
-            cancelControlNotification()
+            stopForeground(true)
+            stopSelf()
             return START_NOT_STICKY
         }
 
         val lokasi = intent?.getStringExtra("lokasi") ?: "Tidak diketahui"
         val triggeredSensors = intent?.getStringArrayListExtra("triggeredSensors") ?: arrayListOf()
+        val silent = intent?.getBooleanExtra("silent", false) ?: false
 
         if (triggeredSensors.isNotEmpty()) {
-            showNotification(lokasi, triggeredSensors)
+            showAlertNotification(lokasi, triggeredSensors)
 
-            // 🔊 Alarm hanya jika ≥ 2 sensor bermasalah
-            if (triggeredSensors.size >= 2) {
+            if (triggeredSensors.size >= 2 && !silent) {
                 showAlarmControlNotification()
                 playAlarm()
             }
         }
 
-        return START_NOT_STICKY
+        return START_STICKY
     }
 
-    /** Notifikasi semua sensor bermasalah **/
-    private fun showNotification(lokasi: String, triggeredSensors: List<String>) {
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    override fun onBind(intent: Intent?): IBinder? = null
 
+    override fun onDestroy() {
+        stopAlarm()
+        super.onDestroy()
+    }
+
+    // ================= FOREGROUND =================
+
+    private fun createForegroundNotification(): Notification {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                channelId,
-                "Peringatan Kualitas Air",
-                NotificationManager.IMPORTANCE_HIGH
+                monitorChannelId,
+                "CleanLake Monitoring",
+                NotificationManager.IMPORTANCE_LOW
             )
-            channel.description = "Notifikasi sensor air yang melebihi atau kurang dari ambang batas"
-            notificationManager.createNotificationChannel(channel)
+            getSystemService(NotificationManager::class.java)
+                .createNotificationChannel(channel)
         }
 
-        val contentText = triggeredSensors.joinToString("\n")
+        return NotificationCompat.Builder(this, monitorChannelId)
+            .setSmallIcon(R.drawable.ic_lake)
+            .setContentTitle("CleanLake Aktif")
+            .setContentText("Memantau kualitas air")
+            .setOngoing(true)
+            .build()
+    }
 
-        val notification: Notification = NotificationCompat.Builder(this, channelId)
+    // ================= ALERT =================
+
+    private fun showAlertNotification(lokasi: String, triggeredSensors: List<String>) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                alertChannelId,
+                "Peringatan Air",
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            getSystemService(NotificationManager::class.java)
+                .createNotificationChannel(channel)
+        }
+
+        val notification = NotificationCompat.Builder(this, alertChannelId)
             .setSmallIcon(R.drawable.ic_warning)
-            .setContentTitle("🚨 Peringatan Air di $lokasi")
-            .setStyle(NotificationCompat.BigTextStyle().bigText(contentText))
+            .setContentTitle("🚨 Peringatan di $lokasi")
+            .setStyle(NotificationCompat.BigTextStyle().bigText(triggeredSensors.joinToString("\n")))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .build()
 
-        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+        getSystemService(NotificationManager::class.java)
+            .notify(System.currentTimeMillis().toInt(), notification)
     }
 
-    /** Notifikasi kontrol alarm **/
-    private fun showAlarmControlNotification() {
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    // ================= CONTROL =================
 
+    private fun showAlarmControlNotification() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 controlChannelId,
                 "Kontrol Alarm",
                 NotificationManager.IMPORTANCE_DEFAULT
             )
-            channel.description = "Kontrol untuk mematikan suara alarm"
-            notificationManager.createNotificationChannel(channel)
+            getSystemService(NotificationManager::class.java)
+                .createNotificationChannel(channel)
         }
 
         val stopIntent = Intent(this, AlertService::class.java).apply {
             action = ACTION_STOP_ALARM
         }
 
-        val stopPendingIntent = PendingIntent.getService(
-            this,
-            0,
-            stopIntent,
+        val pending = PendingIntent.getService(
+            this, 0, stopIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val controlNotification = NotificationCompat.Builder(this, controlChannelId)
+        val notification = NotificationCompat.Builder(this, controlChannelId)
             .setSmallIcon(R.drawable.ic_stop)
             .setContentTitle("🔊 Alarm Aktif")
-            .setContentText("Tekan untuk mematikan suara alarm")
+            .setContentText("Tekan untuk mematikan alarm")
+            .addAction(R.drawable.ic_stop, "Matikan", pending)
             .setOngoing(true)
-            .addAction(R.drawable.ic_stop, "Matikan Alarm", stopPendingIntent)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
 
-        notificationManager.notify(controlNotificationId, controlNotification)
+        getSystemService(NotificationManager::class.java)
+            .notify(controlNotificationId, notification)
     }
 
-    private fun cancelControlNotification() {
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.cancel(controlNotificationId)
-    }
+    // ================= SOUND =================
 
     private fun playAlarm() {
         if (mediaPlayer == null) {
-            mediaPlayer = MediaPlayer.create(this, R.raw.alarm_sound)
-            mediaPlayer?.isLooping = true
+            mediaPlayer = MediaPlayer.create(this, R.raw.alarm_sound).apply {
+                isLooping = true
+                start()
+            }
         }
-        mediaPlayer?.start()
     }
 
     private fun stopAlarm() {
@@ -131,12 +158,6 @@ class AlertService : Service() {
         mediaPlayer?.release()
         mediaPlayer = null
     }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        stopAlarm()
-        cancelControlNotification()
-    }
-
-    override fun onBind(intent: Intent?): IBinder? = null
 }
+
+

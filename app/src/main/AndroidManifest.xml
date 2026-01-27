@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <!-- ⚠️ Tambahkan permission agar notifikasi & service berjalan -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"
+        tools:ignore="ForegroundServicesPolicy" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
@@ -21,10 +22,8 @@
         <!-- 🧩 Service untuk notifikasi & alarm -->
         <service
             android:name=".Service.AlertService"
-            android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="mediaPlayback|location|dataSync|connectedDevice"
-            android:stopWithTask="false"
+            android:foregroundServiceType="dataSync"
             tools:ignore="ForegroundServicePermission" />
 
         <!-- 🔹 Activity Login jadi launcher -->

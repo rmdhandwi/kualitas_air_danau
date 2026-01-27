@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -22,10 +23,14 @@ class RiwayatFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var dbRef: DatabaseReference
+    private lateinit var lokasiRef: DatabaseReference
     private lateinit var adapter: RiwayatAdapter
     private val listRiwayat = mutableListOf<RiwayatModel>()
 
-    private var lokasiTerpilih = "Yoka"
+    private var selectedCard: CardView? = null
+    private var selectedText: TextView? = null
+
+    private var lokasiTerpilih = "L001"
     private var dataListener: ValueEventListener? = null
 
     override fun onCreateView(
@@ -33,71 +38,96 @@ class RiwayatFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentRiwayatBinding.inflate(inflater, container, false)
+
         dbRef = FirebaseDatabase.getInstance().getReference("Riwayat")
+        lokasiRef = FirebaseDatabase.getInstance().getReference("Lokasi")
 
         setupRecycler()
         setupLokasiButtons()
-        setActiveCard(binding.cardViewYoka) // default aktif
-        loadData(lokasiTerpilih)
+        loadNamaLokasi()
+
+        // Default lokasi
+        selectLocation(binding.cardViewLokasi1, binding.tvLokasi1, "L001")
 
         return binding.root
     }
 
-    /** 🔹 Setup RecyclerView */
     private fun setupRecycler() {
         adapter = RiwayatAdapter(requireContext(), listRiwayat)
         binding.rvRiwayat.layoutManager = LinearLayoutManager(requireContext())
         binding.rvRiwayat.adapter = adapter
     }
 
-    /** 🔹 Setup tombol lokasi */
     private fun setupLokasiButtons() = binding.apply {
-        val fadeIn = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
-        val scaleUp = AnimationUtils.loadAnimation(requireContext(), R.anim.scale_up)
-
-        fun handleSelection(card: CardView, lokasi: String, label: String) {
-            lokasiTerpilih = lokasi
-            tvLokasi.text = label
-            tvLokasi.startAnimation(fadeIn)
-            card.startAnimation(scaleUp)
-            setActiveCard(card)
-            loadData(lokasi)
+        cardViewLokasi1.setOnClickListener {
+            selectLocation(cardViewLokasi1, tvLokasi1, "L001")
         }
-
-        cardViewYoka.setOnClickListener { handleSelection(cardViewYoka, "Yoka", "YOKA") }
-        cardViewBatasKota.setOnClickListener { handleSelection(cardViewBatasKota, "Batas_Kota", "BATAS KOTA") }
-        cardViewYobeh.setOnClickListener { handleSelection(cardViewYobeh, "Yobeh", "YOBEH") }
+        cardViewLokasi2.setOnClickListener {
+            selectLocation(cardViewLokasi2, tvLokasi2, "L002")
+        }
+        cardViewLokasi3.setOnClickListener {
+            selectLocation(cardViewLokasi3, tvLokasi3, "L003")
+        }
     }
 
-    /** 🔹 Ubah warna card aktif */
-    private fun setActiveCard(activeCard: CardView) {
-        val activeColor = ContextCompat.getColor(requireContext(), R.color.menu_on)
-        val inactiveColor = ContextCompat.getColor(requireContext(), R.color.menu_off)
+    private fun loadNamaLokasi() {
+        lokasiRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (!isAdded || _binding == null) return
 
-        val allCards = listOf(
-            binding.cardViewBatasKota,
-            binding.cardViewYoka,
-            binding.cardViewYobeh
-        )
+                binding.tvLokasi1.text =
+                    snapshot.child("L001/nama").getValue(String::class.java) ?: "Lokasi 1"
+                binding.tvLokasi2.text =
+                    snapshot.child("L002/nama").getValue(String::class.java) ?: "Lokasi 2"
+                binding.tvLokasi3.text =
+                    snapshot.child("L003/nama").getValue(String::class.java) ?: "Lokasi 3"
+            }
 
-        for (card in allCards) {
-            card.setCardBackgroundColor(inactiveColor)
-        }
-        activeCard.setCardBackgroundColor(activeColor)
+            override fun onCancelled(error: DatabaseError) {}
+        })
     }
 
-    /** 🔹 Ambil data Firebase sesuai lokasi */
-    private fun loadData(lokasi: String) {
-        // Bersihkan listener lama agar tidak leak
-        dataListener?.let { dbRef.child(lokasi).removeEventListener(it) }
+    private fun selectLocation(card: CardView, textView: TextView, lokasiId: String) {
+        val context = requireContext()
+
+        val scaleUp = AnimationUtils.loadAnimation(context, R.anim.scale_up)
+        val fadeOut = AnimationUtils.loadAnimation(context, R.anim.fade_out)
+        val slideFadeIn = AnimationUtils.loadAnimation(context, R.anim.slide_fase_in)
+
+        selectedCard?.setCardBackgroundColor(ContextCompat.getColor(context, R.color.menu_off))
+        selectedText?.setTextColor(ContextCompat.getColor(context, R.color.black))
+
+        card.setCardBackgroundColor(ContextCompat.getColor(context, R.color.menu_on))
+        textView.setTextColor(ContextCompat.getColor(context, R.color.white))
+        card.startAnimation(scaleUp)
+
+        selectedCard = card
+        selectedText = textView
+        lokasiTerpilih = lokasiId
+
+        // Animasi container ambang
+        binding.rvRiwayat.startAnimation(fadeOut)
+        binding.rvRiwayat.postDelayed({
+            loadData(lokasiId)
+            binding.rvRiwayat.startAnimation(slideFadeIn)
+        }, 150)
+    }
+
+    private fun loadData(lokasiId: String) {
+        dataListener?.let { dbRef.child(lokasiId).removeEventListener(it) }
 
         val listener = object : ValueEventListener {
             @SuppressLint("NotifyDataSetChanged")
             override fun onDataChange(snapshot: DataSnapshot) {
-                if (!isAdded || _binding == null) return  // hindari crash kalau fragment sudah hilang
+                if (!isAdded || _binding == null) return
 
                 listRiwayat.clear()
+
                 for (dataSnap in snapshot.children) {
+
+                    // 🔒 Skip field string seperti "lokasi"
+                    if (!dataSnap.hasChild("timestamp")) continue
+
                     val data = dataSnap.getValue(RiwayatModel::class.java)
                     if (data != null) listRiwayat.add(data)
                 }
@@ -117,14 +147,15 @@ class RiwayatFragment : Fragment() {
         }
 
         dataListener = listener
-        dbRef.child(lokasi).addValueEventListener(listener)
+        dbRef.child(lokasiId).addValueEventListener(listener)
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Pastikan listener dilepas
         dataListener?.let { dbRef.child(lokasiTerpilih).removeEventListener(it) }
         dataListener = null
         _binding = null
     }
 }
+
