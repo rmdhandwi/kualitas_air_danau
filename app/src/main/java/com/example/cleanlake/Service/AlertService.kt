@@ -16,7 +16,6 @@ import com.example.cleanlake.R
 class AlertService : Service() {
 
     private var mediaPlayer: MediaPlayer? = null
-    private val monitorChannelId = "cleanlake_monitor"
     private val alertChannelId = "cleanlake_alert"
     private val controlChannelId = "cleanlake_control"
     private val controlNotificationId = 8888
@@ -25,16 +24,10 @@ class AlertService : Service() {
         const val ACTION_STOP_ALARM = "com.example.cleanlake.STOP_ALARM"
     }
 
-    override fun onCreate() {
-        super.onCreate()
-        startForeground(1, createForegroundNotification())
-    }
-
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
         if (intent?.action == ACTION_STOP_ALARM) {
             stopAlarm()
-            stopForeground(true)
             stopSelf()
             return START_NOT_STICKY
         }
@@ -52,7 +45,7 @@ class AlertService : Service() {
             }
         }
 
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -62,38 +55,18 @@ class AlertService : Service() {
         super.onDestroy()
     }
 
-    // ================= FOREGROUND =================
-
-    private fun createForegroundNotification(): Notification {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                monitorChannelId,
-                "CleanLake Monitoring",
-                NotificationManager.IMPORTANCE_LOW
-            )
-            getSystemService(NotificationManager::class.java)
-                .createNotificationChannel(channel)
-        }
-
-        return NotificationCompat.Builder(this, monitorChannelId)
-            .setSmallIcon(R.drawable.ic_lake)
-            .setContentTitle("CleanLake Aktif")
-            .setContentText("Memantau kualitas air")
-            .setOngoing(true)
-            .build()
-    }
-
     // ================= ALERT =================
 
     private fun showAlertNotification(lokasi: String, triggeredSensors: List<String>) {
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 alertChannelId,
                 "Peringatan Air",
                 NotificationManager.IMPORTANCE_HIGH
             )
-            getSystemService(NotificationManager::class.java)
-                .createNotificationChannel(channel)
+            manager.createNotificationChannel(channel)
         }
 
         val notification = NotificationCompat.Builder(this, alertChannelId)
@@ -104,21 +77,21 @@ class AlertService : Service() {
             .setAutoCancel(true)
             .build()
 
-        getSystemService(NotificationManager::class.java)
-            .notify(System.currentTimeMillis().toInt(), notification)
+        manager.notify(System.currentTimeMillis().toInt(), notification)
     }
 
     // ================= CONTROL =================
 
     private fun showAlarmControlNotification() {
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 controlChannelId,
                 "Kontrol Alarm",
                 NotificationManager.IMPORTANCE_DEFAULT
             )
-            getSystemService(NotificationManager::class.java)
-                .createNotificationChannel(channel)
+            manager.createNotificationChannel(channel)
         }
 
         val stopIntent = Intent(this, AlertService::class.java).apply {
@@ -138,8 +111,7 @@ class AlertService : Service() {
             .setOngoing(true)
             .build()
 
-        getSystemService(NotificationManager::class.java)
-            .notify(controlNotificationId, notification)
+        manager.notify(controlNotificationId, notification)
     }
 
     // ================= SOUND =================
@@ -159,5 +131,6 @@ class AlertService : Service() {
         mediaPlayer = null
     }
 }
+
 
 

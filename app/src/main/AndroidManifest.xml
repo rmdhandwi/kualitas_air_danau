@@ -23,7 +23,6 @@
         <service
             android:name=".Service.AlertService"
             android:exported="false"
-            android:foregroundServiceType="dataSync"
             tools:ignore="ForegroundServicePermission" />
 
         <!-- 🔹 Activity Login jadi launcher -->
