@@ -1,0 +1,241 @@
+================================================================================
+          PANDUAN PENGGUNAAN & DOKUMENTASI SISTEM "CLEANLAKE"
+    SISTEM MONITORING KUALITAS AIR DANAU BERBASIS INTERNET OF THINGS (IoT)
+================================================================================
+
+Aplikasi "CleanLake" adalah sistem monitoring kualitas air danau secara real-time
+yang mengintegrasikan perangkat keras IoT berbasis mikrokontroler ESP8266 dengan 
+aplikasi mobile Android (Kotlin) serta database Firebase. Dokumen ini dirancang 
+sebagai panduan operasional lengkap bagi pengguna (User) maupun pengelola (Admin) 
+serta dokumentasi teknis sistem untuk kebutuhan akademis/skripsi.
+
+--------------------------------------------------------------------------------
+DAFTAR ISI:
+1. PENGENALAN SISTEM & ALUR KERJA
+2. SPESIFIKASI PERANGKAT KERAS (HARDWARE IoT) & WIRING PIN
+3. PANDUAN KONFIGURASI & OPERASIONAL IoT (ARDUINO)
+4. HAK AKSES PENGGUNA (ROLE-BASED ACCESS CONTROL)
+5. PANDUAN PENGGUNAAN APLIKASI ANDROID (USER MANUAL)
+6. SISTEM PERINGATAN DINI (NOTIFICATION & AUDIBLE ALARM)
+7. STRUKTUR DATABASE FIREBASE REALTIME
+8. PANDUAN PENYELESAIAN MASALAH (TROUBLESHOOTING)
+================================================================================
+
+
+1. PENGENALAN SISTEM & ALUR KERJA
+---------------------------------
+Sistem CleanLake dirancang untuk memantau 4 parameter utama kualitas air danau:
+  a. pH (Tingkat Keasaman Air)
+  b. TDS (Total Dissolved Solids / Kandungan Padatan Terlarut dalam satuan ppm)
+  c. Kekeruhan (Turbidity dalam satuan NTU / persentase kekeruhan)
+  d. Suhu Air (dalam derajat Celsius)
+
+Alur Kerja Sistem:
+  [Sensor Fisik] -> [ADS1115 (ADC)] -> [ESP8266 (NodeMCU)] -> [WiFi] -> [Firebase] -> [Android App]
+  
+Data yang dibaca oleh sensor fisik akan diubah menjadi sinyal analog, dikonversi 
+dengan presisi tinggi oleh ADS1115 (16-bit ADC), lalu diproses oleh mikrokontroler 
+ESP8266 untuk dikirim ke Firebase Realtime Database setiap 10 detik. Aplikasi 
+Android akan membaca perubahan data tersebut secara real-time, melakukan analisis 
+status kelayakan air berdasarkan ambang batas (threshold) yang telah ditentukan, 
+dan membunyikan alarm jika terdeteksi anomali/pencemaran air.
+
+
+2. SPESIFIKASI PERANGKAT KERAS (HARDWARE IoT) & WIRING PIN
+----------------------------------------------------------
+Perangkat keras yang digunakan meliputi:
+  * Mikrokontroler: ESP8266 (NodeMCU v3 / Wemos D1 Mini)
+  * Modul ADC Eksternal: Adafruit ADS1115 (16-bit ADC melalui komunikasi I2C)
+  * Sensor pH Air (Gravity Analog pH Sensor)
+  * Sensor TDS Air (Gravity Analog TDS Sensor)
+  * Sensor Kekeruhan Air (Gravity Analog Turbidity Sensor)
+  * Sensor Suhu Air: DS18B20 (Waterproof Temperature Sensor dengan protokol OneWire)
+
+Skema Sambungan Kabel (Wiring Pinout):
+  +----------------------+--------------------+--------------------------------+
+  | Komponen Sumber      | Komponen Tujuan    | Pin Koneksi                    |
+  +----------------------+--------------------+--------------------------------+
+  | ADS1115 Module       | ESP8266            | VCC -> 3.3V / 5V               |
+  |                      |                    | GND -> GND                     |
+  |                      |                    | SDA -> Pin D2 (GPIO 4)         |
+  |                      |                    | SCL -> Pin D1 (GPIO 5)         |
+  +----------------------+--------------------+--------------------------------+
+  | Sensor pH Analog     | ADS1115 Module     | Signal -> Analog Input A0      |
+  |                      |                    | VCC -> 5V / 3.3V, GND -> GND   |
+  +----------------------+--------------------+--------------------------------+
+  | Sensor TDS Analog    | ADS1115 Module     | Signal -> Analog Input A1      |
+  |                      |                    | VCC -> 5V / 3.3V, GND -> GND   |
+  +----------------------+--------------------+--------------------------------+
+  | Sensor Kekeruhan     | ADS1115 Module     | Signal -> Analog Input A2      |
+  |                      |                    | VCC -> 5V, GND -> GND          |
+  +----------------------+--------------------+--------------------------------+
+  | Sensor Suhu DS18B20  | ESP8266            | Data -> Pin D4 (GPIO 2)        |
+  |                      |                    | VCC -> 3.3V / 5V, GND -> GND   |
+  |                      |                    | *Tambahkan resistor pull-up    |
+  |                      |                    |  4.7k Ohm antara VCC & Data    |
+  +----------------------+--------------------+--------------------------------+
+
+
+3. PANDUAN KONFIGURASI & OPERASIONAL IoT (ARDUINO)
+--------------------------------------------------
+Langkah-langkah untuk menjalankan perangkat keras IoT:
+
+  1. Persiapan Software:
+     - Install Arduino IDE di komputer Anda.
+     - Install Board Manager ESP8266 (masuk ke Preferences -> Additional Boards 
+       Manager URLs, tambahkan link ESP8266, lalu install di Tools -> Board).
+     - Install library berikut melalui Library Manager (Sketch -> Include Library -> Manage Libraries):
+       * `ESP8266WiFi`
+       * `FirebaseESP8266` (oleh Mobizt)
+       * `Adafruit_ADS1X15` (untuk modul ADS1115)
+       * `OneWire`
+       * `DallasTemperature`
+
+  2. Konfigurasi Kode Arduino (`Kode.ino`):
+     - Buka file `Arduino/Kode/Kode.ino` di Arduino IDE.
+     - Sesuaikan kredensial WiFi pada baris 9-10:
+       #define WIFI_SSID "Nama_WiFi_Anda"
+       #define WIFI_PASSWORD "Password_WiFi_Anda"
+       *(Default pada program saat ini adalah SSID: "free" tanpa password)*
+     - Kredensial Firebase (telah terkonfigurasi ke database `cleanlake-7cb91`):
+       * API_KEY: `AIzaSyAgqd7izjsF4dj32FDUjGe3KYnl4JQxONA`
+       * DATABASE_URL: `cleanlake-7cb91-default-rtdb.firebaseio.com`
+       * DATABASE_SECRET: `c2HNnan45yE2BpDOsTABHhiK950qsnEtzOpbSBub`
+     - Tentukan lokasi pengambilan sampel alat dengan mengaktifkan baris lokasi 
+       yang sesuai pada baris 18-20:
+       * `String lokasi = "Yoka";`
+       * `String lokasi = "Batas_Kota";`
+       * `String lokasi = "Yobeh";` *(Default aktif saat ini)*
+
+  3. Upload & Jalankan Alat:
+     - Hubungkan board ESP8266 ke komputer menggunakan kabel data micro-USB.
+     - Pilih Board yang sesuai (misal: "NodeMCU 1.0 (ESP-12E Module)") dan Port COM 
+       yang terdeteksi pada Tools -> Port.
+     - Klik tombol "Upload" (ikon panah kanan) di Arduino IDE.
+     - Setelah sukses ("Done uploading"), buka Serial Monitor pada Baud Rate 115200.
+     - Alat akan otomatis menghubungkan ke WiFi, melakukan kalibrasi sensor, dan 
+       mengirimkan data suhu, pH, TDS, dan kekeruhan ke Firebase setiap 10 detik.
+
+
+4. HAK AKSES PENGGUNA (ROLE-BASED ACCESS CONTROL)
+-------------------------------------------------
+Aplikasi Android CleanLake menggunakan sistem pembagian hak akses (Role) yang 
+disimpan di Firebase Realtime Database. Akun terbagi menjadi dua peran:
+
+  A. Peran USER (Masyarakat Umum / Pengawas Lapangan):
+     - Memantau kondisi kualitas air danau secara real-time pada 3 titik lokasi.
+     - Melihat status analisis air (Aman, Perhatian, atau Kritikal) serta detail 
+       apakah tiap sensor berada dalam atau luar batas normal.
+     - Mengubah data profil pribadi (Nama Lengkap, Username, Nomor Telepon).
+     - *Dibatasi:* Tidak dapat melihat/mengakses menu Riwayat Data, Pengaturan 
+       Ambang Batas, maupun Manajemen Pengguna.
+
+  B. Peran ADMIN (Administrator / Peneliti / Pengelola Utama):
+     - Memiliki seluruh hak akses pemantauan real-time yang dimiliki oleh USER.
+     - **Manajemen Ambang Batas (Setting):** Menentukan nilai batas minimum (Min) 
+       dan maksimum (Max) untuk parameter pH, Suhu, TDS, dan Kekeruhan secara mandiri 
+       per lokasi.
+     - **Mengubah Nama Lokasi:** Mengganti nama pelabelan lokasi (misal L001 diubah 
+       dari "Yobeh" menjadi nama kustom). Nama baru ini akan ter-update otomatis 
+       di seluruh database Firebase (node AmbangBatas, Lokasi, dan Riwayat).
+     - **Manajemen Riwayat (History):** Melihat log rekaman data berkala di tiap 
+       lokasi lengkap dengan evaluasi deskriptif sensor dan nilai parameter air.
+     - **Manajemen Pengguna (Users):** Mendaftarkan akun User baru langsung melalui 
+       aplikasi, mengedit informasi profil User, serta menghapus akun User.
+
+
+5. PANDUAN PENGGUNAAN APLIKASI ANDROID (USER MANUAL)
+----------------------------------------------------
+Berikut adalah langkah operasional penggunaan menu pada aplikasi Android CleanLake:
+
+  A. HALAMAN LOGIN & PEMULIHAN AKUN
+     - Saat aplikasi dibuka, jika pengguna belum masuk, sistem akan mengarahkan ke 
+       `LoginActivity`.
+     - Masukkan Email dan Password Anda, lalu tekan tombol "Masuk".
+     - Jika Anda lupa kata sandi Anda, tekan teks "Lupa Password?", masukkan alamat 
+       email terdaftar Anda, lalu tekan "Kirim Email Pemulihan". Sistem akan 
+       mengirimkan email link reset password melalui Firebase Auth.
+
+  B. MENU BERANDA (DASHBOARD REAL-TIME) - Akses: USER & ADMIN
+     - Di bagian atas, terdapat 3 kartu pilihan lokasi (Lokasi L001, L002, L003). 
+       Tekan kartu tersebut untuk beralih pemantauan lokasi secara instan.
+     - Setelah memilih lokasi, sistem akan menampilkan data sensor real-time:
+       * **Kartu pH**: Nilai pH (contoh: 7.2) beserta rentang ambang batas dan statusnya.
+       * **Kartu TDS**: Nilai TDS dalam ppm (contoh: 220.0 ppm).
+       * **Kartu Kekeruhan**: Tingkat kekeruhan air dalam NTU (contoh: 3.2 NTU).
+       * **Kartu Suhu**: Nilai suhu air dalam °C (contoh: 29.4 °C).
+     - Setiap kartu parameter akan berubah warna sesuai evaluasinya:
+       * **Warna Hijau (NORMAL)**: Parameter berada dalam rentang minimum-maksimum.
+       * **Warna Merah (BAHAYA)**: Parameter berada di bawah minimum atau di atas maksimum.
+     - **Status Evaluasi Utama (Status Kepatuhan Air)**:
+       Di bagian bawah terdapat kotak status keseluruhan kualitas air danau:
+       * **"Air Aman"** (Hijau): Semua 4 parameter berada dalam batas normal.
+       * **"Perhatian: Beberapa parameter menyimpang"** (Kuning): 1 hingga 2 parameter 
+         berada di luar batas normal.
+       * **"Kritikal: Indikasi Pencemaran Air!"** (Merah): 3 atau lebih parameter 
+         telah melebihi/kurang dari batas normal.
+
+  C. MENU RIWAYAT (HISTORY) - Akses: HANYA ADMIN
+     - Berisi daftar log pencatatan data sensor historis.
+     - Anda dapat memilih lokasi L001, L002, atau L003 untuk melihat riwayat data 
+       khusus pada lokasi tersebut.
+     - **Interval Penyimpanan Cerdas (Smart Logging System)**:
+       * Jika air dalam kondisi **AMAN**, data sensor akan disimpan ke database 
+         setiap **30 detik**.
+       * Jika terdeteksi kondisi penyimpangan (**PERINGATAN / KRITIKAL**), data akan 
+         disimpan lebih rapat yaitu setiap **10 detik** untuk merekam fluktuasi 
+         pencemaran secara mendetail.
+     - Setiap item riwayat menampilkan: timestamp (waktu), status umum, nilai parameter 
+       sensor, dan deskripsi evaluasi akademis interaktif.
+
+  D. MENU SETTING AMBANG BATAS (THRESHOLD SETTING) - Akses: HANYA ADMIN
+     - Menu ini digunakan untuk mengkonfigurasi standar baku mutu kualitas air secara dinamis.
+     - Pilih lokasi yang ingin diatur (L001, L002, atau L003).
+     - Masukkan nilai minimum (Min) dan nilai maksimum (Max) untuk masing-masing 
+       parameter (pH, Suhu, TDS, Kekeruhan), lalu tekan "Simpan Ambang Batas".
+     - **Mengubah Nama Lokasi**: Pada kolom "Nama Lokasi Baru", Anda dapat mengganti 
+       nama default lokasi (misal L001 diganti menjadi "Yobeh Sentani"), lalu tekan 
+       "Simpan Nama Lokasi". Nama baru ini langsung menyebar ke seluruh sistem.
+
+  E. MENU KELOLA USER (USERS MANAGEMENT) - Akses: HANYA ADMIN
+     - Admin dapat melihat semua akun ber-role "User" yang terdaftar.
+     - **Menambah Akun User**: Tekan tombol melayang (+) "FAB" di kanan bawah. Isi Nama 
+       Lengkap, Username, Email, No Telepon, Password, dan Konfirmasi Password. Tekan 
+       "Simpan". Akun baru akan terdaftar di Firebase Auth dan Database.
+     - **Mengedit Akun User**: Tekan tombol ikon pensil pada daftar user, ubah data 
+       yang diperlukan (email tidak dapat diubah demi keamanan data auth), lalu simpan.
+     - **Menghapus Akun User**: Tekan tombol ikon tempat sampah pada daftar user, 
+       lalu konfirmasi "Ya" untuk menghapus data akun tersebut dari database.
+
+  F. MENU PROFIL (PROFILE) - Akses: USER & ADMIN
+     - Menampilkan informasi akun yang sedang login meliputi Nama Lengkap, Username, 
+       Alamat Email, dan Nomor Telepon.
+     - Tekan tombol "Edit Profil" untuk mengubah Nama Lengkap, Username, atau Nomor Telepon. 
+       Setelah selesai, tekan "Simpan Perubahan".
+     - **Tombol Logout**: Terletak di bar navigasi atas (ikon keluar). Tekan tombol 
+       tersebut dan konfirmasi "Ya" untuk keluar dari akun Anda dengan aman.
+
+
+6. SISTEM PERINGATAN DINI (NOTIFICATION & AUDIBLE ALARM)
+--------------------------------------------------------
+Aplikasi CleanLake dilengkapi dengan modul `AlertService` yang berjalan di latar 
+belakang (background service) untuk memberikan peringatan dini jika air tercemar:
+
+  1. Peringatan Notifikasi Status Bar (Silent Alert):
+     - Dipicu ketika **minimal ada 1 parameter** sensor yang menyimpang dari ambang batas.
+     - Menampilkan notifikasi banner di status bar Android dengan rincian parameter 
+       apa saja yang mengalami anomali (misal: "🚨 Peringatan di Yobeh: pH terlalu rendah").
+
+  2. Peringatan Alarm Suara Aktif (Audible Looping Alarm):
+     - Dipicu jika kondisi memburuk dan **2 atau lebih parameter** menyimpang secara bersamaan.
+     - Aplikasi akan memutar file audio peringatan (`alarm_sound`) secara terus-menerus 
+       (looping) untuk menarik perhatian pengguna/peneliti di sekitar area.
+     - Bersamaan dengan itu, notifikasi kontrol status bar ("🔊 Alarm Aktif") akan muncul 
+       sebagai notifikasi tetap (ongoing notification).
+     - Pengguna dapat membungkam alarm dengan menekan tombol **"Matikan"** pada notifikasi 
+       kontrol tersebut tanpa harus menutup aplikasi.
+
+================================================================================
+          DOKUMEN INI DIBUAT UNTUK MEMUDAHKAN OPERASIONAL SISTEM CLEANLAKE
+            SEBAGAI BAGIAN DARI PENELITIAN MONITORING AIR DANAU.
+================================================================================
